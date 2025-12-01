@@ -4,8 +4,9 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <RootNamespace>InventoryService</RootNamespace>
-        <RootNamespace>Diagrid.Labs.Catalyst.OrderWorkflow.Api</RootNamespace>
-        <AssemblyName>Diagrid.Labs.Catalyst.OrderWorkflow.Api</AssemblyName>
+        <RootNamespace>Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService</RootNamespace>
+        <AssemblyName>Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService</AssemblyName>
+        <ContainerRepository>order-workflow-inventory-service</ContainerRepository>
     </PropertyGroup>
 
     <ItemGroup>

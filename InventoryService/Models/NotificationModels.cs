@@ -1,6 +1,6 @@
 using System;
 
-namespace Diagrid.Labs.Catalyst.OrderWorkflow.Api.Models;
+namespace Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService.Models;
 
 public record OrderStatusNotification
 {

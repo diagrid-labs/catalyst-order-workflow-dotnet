@@ -112,5 +112,14 @@ public static class AppHostExtensions
                 Path.Join(ExecutingPath, "Resources"),
             ],
         });
+
+        var diagridDashboard = builder
+            .AddContainer("diagrid-dashboard", "public.ecr.aws/d3f9w4q8/local-dash-temp:latest")
+            .WithBindMount(Path.Join(ExecutingPath, "Resources"), "/app/components")
+            .WithEnvironment("COMPONENT_FILE", "/app/components/inventory-store-diagrid-dashboard.yaml")
+            .WithEnvironment("APP_ID", "diagrid-dashboard")
+            .WithHttpEndpoint(targetPort: 8080)
+            .WithReference(cache)
+        ;
     }
 }

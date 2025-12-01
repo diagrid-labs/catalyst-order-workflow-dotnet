@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Diagrid.Labs.Catalyst.OrderWorkflow.Api;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.ServiceDefaults;
+using Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;

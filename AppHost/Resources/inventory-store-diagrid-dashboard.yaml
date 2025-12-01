@@ -3,14 +3,13 @@ kind: Component
 metadata:
   name: inventory-store
 scopes:
-  - worker
-  - inventory-service
+  - diagrid-dashboard
 spec:
   type: state.redis
   version: v1
   metadata:
     - name: redisHost
-      value: "localhost:6379"
+      value: "cache:6379"
     - name: redisPassword
       value: "zxczxc123"
     - name: actorStateStore

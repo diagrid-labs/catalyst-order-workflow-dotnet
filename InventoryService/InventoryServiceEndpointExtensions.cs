@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dapr.Client;
-using Diagrid.Labs.Catalyst.OrderWorkflow.Api.Models;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.Domain;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.ServiceDefaults;
+using Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Diagrid.Labs.Catalyst.OrderWorkflow.Api;
+namespace Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService;
 
 public static class InventoryServiceEndpointExtensions
 {
@@ -138,6 +138,8 @@ public static class InventoryServiceEndpointExtensions
 
     public static async Task<NoContent> CreatePromotion([FromBody] PromotionNotification notification)
     {
+        await Task.CompletedTask;
+
         switch (notification.PromotionType.ToLower())
         {
             case "flash_sale":
@@ -157,6 +159,8 @@ public static class InventoryServiceEndpointExtensions
     }
     public static async Task<NoContent> CreateOrder([FromBody] OrderStatusNotification notification)
     {
+        await Task.CompletedTask;
+
         switch (notification.Status.ToLower())
         {
             case "created":

@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <RootNamespace>Diagrid.Labs.Catalyst.OrderWorkflow.Worker</RootNamespace>
         <AssemblyName>Diagrid.Labs.Catalyst.OrderWorkflow.Worker</AssemblyName>
+        <ContainerRepository>order-workflow-worker</ContainerRepository>
     </PropertyGroup>
 
     <ItemGroup>
