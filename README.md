@@ -16,6 +16,20 @@ The project features three main Dapr building blocks:
  - [Pub/Sub](https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-overview)
  - [Service Invocation](https://docs.dapr.io/developing-applications/building-blocks/service-invocation/service-invocation-overview)
 
+### Technologies Used
+
+- [Dapr](https://dapr.io/)
+- [Diagrid Dashboard](https://diagrid.io)
+- [Diagrid Catalyst](https://www.diagrid.io/catalyst)
+- [ASP.NET](https://dotnet.microsoft.com/apps/aspnet)
+    - [Aspire](https://learn.microsoft.com/dotnet/aspire/get-started/aspire-overview)
+    - [Tracing](https://learn.microsoft.com/dotnet/core/diagnostics/distributed-tracing-instrumentation-walkthroughs)
+    - [Health checks](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-10.0)
+    - [Secrets management](https://learn.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-10.0&tabs=linux)
+    - [Minimal APIs](https://learn.microsoft.com/aspnet/core/tutorials/min-web-api?view=aspnetcore-10.0&tabs=visual-studio)
+    - [Toplevel Statements](https://learn.microsoft.com/dotnet/csharp/fundamentals/program-structure/top-level-statements)
+- [Scalar API browser](https://scalar.com)
+
 Workflow visibility is provided by the Diagrid Dashboard, a utility container created to enhance the Dapr developer
 experience.
 
@@ -25,20 +39,6 @@ An API tester is also included for the Order Manager service which can be access
 Manager service address.
 
 ![Scalar](/scalar.png)
-
-### Technologies Used
-
- - [Dapr](https://dapr.io/)
- - [Diagrid Dashboard](https://diagrid.io)
- - [Diagrid Catalyst](https://www.diagrid.io/catalyst)
- - [ASP.NET](https://dotnet.microsoft.com/apps/aspnet)
-   - [Aspire](https://learn.microsoft.com/dotnet/aspire/get-started/aspire-overview)
-   - [Tracing](https://learn.microsoft.com/dotnet/core/diagnostics/distributed-tracing-instrumentation-walkthroughs)
-   - [Health checks](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-10.0)
-   - [Secrets management](https://learn.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-10.0&tabs=linux)
-   - [Minimal APIs](https://learn.microsoft.com/aspnet/core/tutorials/min-web-api?view=aspnetcore-10.0&tabs=visual-studio)
-   - [Toplevel Statements](https://learn.microsoft.com/dotnet/csharp/fundamentals/program-structure/top-level-statements)
- - [Scalar API browser](https://scalar.com)
 
 ## Running
 
