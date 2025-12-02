@@ -1,6 +1,6 @@
 ## Running this Project
 
-[![Running via CLI](/running.mp4)
+[![Watch the video](https://raw.githubusercontent.com/diagrid-labs/catalyst-order-workflow-dotnet/main/running.mp4)](https://raw.githubusercontent.com/diagrid-labs/catalyst-order-workflow-dotnet/main/running.mp4)
 
 This solution runs via a dotnet Aspire AppHost.  Aspire takes care of launching your application and any of its
 dependencies under a single run profile.
