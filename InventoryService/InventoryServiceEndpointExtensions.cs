@@ -32,11 +32,11 @@ public static class InventoryServiceEndpointExtensions
 
         app
             .MapPost("order-notification", CreateOrder)
-            .WithTopic(ShopActivityPubSub.ResourceName, ShopActivityPubSub.OrderTopic);
+            .WithTopic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.OrderTopic);
 
         app
             .MapPost("promotion", CreatePromotion)
-            .WithTopic(ShopActivityPubSub.ResourceName, ShopActivityPubSub.PromotionsTopic);
+            .WithTopic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.PromotionsTopic);
     }
 
     public static async Task<Results<Ok<InventorySearchResult>, NotFound>> SearchInventory(

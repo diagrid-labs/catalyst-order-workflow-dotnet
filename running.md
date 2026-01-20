@@ -1,4 +1,4 @@
-## Running this Project
+## Run with Aspire
 
 ![Running](/running.webp)
 
@@ -33,7 +33,7 @@ dotnet run
 
 ---
 
-## Catalyst Profile
+## Run with Aspire & Catalyst
 
 An alternative run profile provided as this project allows you to run services locally while also connecting to
 live Catalyst resources. This scenario communicates from your laptop to Diagrids Catalyst services, instead of running
@@ -63,4 +63,20 @@ Then, all you need to do is run the project with the `http-local-catalyst` profi
 ```bash
 cd AppHost
 dotnet run --profile http-local-catalyst
+```
+
+---
+
+## Run with the Dapr CLI
+
+
+Run the inventory service with the Dapr CLI using the following command:
+
+```
+dapr run --app-id inventory-service --app-port 8082 --dapr-http-port 6002 --resources-path ./components -- dotnet run --project InventoryService/InventoryService.csproj
+```
+
+Run the order manager workflow with the following command:
+```
+dapr run --app-id order-manager --app-port 8081 --dapr-http-port 6003 --resources-path ./components -- dotnet run --project OrderManager/OrderManager.csproj
 ```
