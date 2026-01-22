@@ -19,7 +19,7 @@ public class SendNotificationActivity(DaprClient daprClient) : WorkflowActivity<
             Timestamp = DateTime.UtcNow,
         };
 
-        await daprClient.PublishEventAsync(ShopActivityPubSub.ResourceName, ShopActivityPubSub.OrderTopic, orderNotification);
+        await daprClient.PublishEventAsync(ShopActivityPubSub.PubSubName, ShopActivityPubSub.OrderTopic, orderNotification);
 
         return true;
     }

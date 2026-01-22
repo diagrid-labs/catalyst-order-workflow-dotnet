@@ -1,6 +1,6 @@
 # Catalyst E-Commerce Demo
 
-![Architecture Diagram](/architecture.png)
+![Architecture Diagram](/images/architecture.png)
 
 This demo application showcases workflows and local development using Dapr and the Diagrid Dashboard using a fictional
 e-commerce scenario.  The scenario consists of two microservices:
@@ -33,18 +33,18 @@ The project features three main Dapr building blocks:
 Workflow visibility is provided by the Diagrid Dashboard, a utility container created to enhance the Dapr developer
 experience.
 
-![Diagrid Dashboard](/diagrid-dashboard-workflow.png)
+![Diagrid Dashboard](/images/diagrid-dashboard-workflow.png)
 
 An API tester is also included for the Order Manager service which can be accessed by visiting `/scalar` on the Order
 Manager service address.
 
-![Scalar](/scalar.png)
+![Scalar](/images/scalar.png)
 
 ## Running
 
 This project uses .NET Aspire to provide an easy local development experience.
 
-Take a look at the [running documentation](/running.md) for a complete guide.
+Take a look at the [running documentation](/images/running.md) for a complete guide.
 
 ## Deploying
 
@@ -52,7 +52,7 @@ Take a look at the [running documentation](/running.md) for a complete guide.
 
 ## Business Flow
 
-![Workflow](/workflow.png)
+![Workflow](/images/workflow.png)
 
 1. **Order Processing Workflow**: Complete order lifecycle from validation to fulfillment
 2. **Pub/Sub Notifications**: Real-time order status updates (created, payment processed, shipped, delivered)

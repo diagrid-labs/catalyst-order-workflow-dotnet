@@ -16,5 +16,4 @@ public record PromotionNotification
     public string PromotionType { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public string TargetAudience { get; set; } = string.Empty;
-    public DateTime SentAt { get; set; }
 }

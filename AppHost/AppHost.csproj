@@ -18,8 +18,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Order Manager\Order Manager.csproj" />
-        <ProjectReference Include="..\Inventory Service\Inventory Service.csproj" />
+      <ProjectReference Include="..\OrderManager\OrderManager.csproj" />
+        <ProjectReference Include="..\InventoryService\InventoryService.csproj" />
     </ItemGroup>
 
     <ItemGroup>

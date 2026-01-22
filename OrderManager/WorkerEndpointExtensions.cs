@@ -67,7 +67,7 @@ public static class WorkerEndpointExtensions
             SentAt = DateTime.UtcNow,
         };
 
-        await daprClient.PublishEventAsync(ShopActivityPubSub.ResourceName, ShopActivityPubSub.PromotionsTopic, promotion);
+        await daprClient.PublishEventAsync(ShopActivityPubSub.PubSubName, ShopActivityPubSub.PromotionsTopic, promotion);
 
         return TypedResults.Ok(new SendPromotionResult
         {

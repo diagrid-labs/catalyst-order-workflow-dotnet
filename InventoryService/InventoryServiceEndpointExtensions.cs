@@ -32,11 +32,11 @@ public static class InventoryServiceEndpointExtensions
 
         app
             .MapPost("order-notification", CreateOrder)
-            .WithTopic(ShopActivityPubSub.ResourceName, ShopActivityPubSub.OrderTopic);
+            .WithTopic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.OrderTopic);
 
         app
             .MapPost("promotion", CreatePromotion)
-            .WithTopic(ShopActivityPubSub.ResourceName, ShopActivityPubSub.PromotionsTopic);
+            .WithTopic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.PromotionsTopic);
     }
 
     public static async Task<Results<Ok<InventorySearchResult>, NotFound>> SearchInventory(
@@ -142,21 +142,25 @@ public static class InventoryServiceEndpointExtensions
 
         switch (notification.PromotionType.ToLower())
         {
-            case "flash_sale":
-                // ProcessFlashSale(notification);
+            case "flash-sale":
+                Console.WriteLine($"Flash sale promotion {notification.PromotionId} received for {notification.TargetAudience}: {notification.Message}");
                 break;
 
-            case "seasonal_discount":
-                // ProcessSeasonalDiscount(notification);
+            case "seasonal-discount":
+                Console.WriteLine($"Seasonal discount promotion {notification.PromotionId} received for {notification.TargetAudience}: {notification.Message}");
                 break;
 
-            case "loyalty_reward":
-                // ProcessLoyaltyReward(notification);
+            case "loyalty-reward":
+                Console.WriteLine($"Loyalty reward promotion {notification.PromotionId} received for {notification.TargetAudience}: {notification.Message}");
                 break;
+
+            default:
+                throw new($"Unknown promotion type: {notification.PromotionType}");
         }
 
         return TypedResults.NoContent();
     }
+
     public static async Task<NoContent> CreateOrder([FromBody] OrderStatusNotification notification)
     {
         await Task.CompletedTask;
@@ -164,20 +168,25 @@ public static class InventoryServiceEndpointExtensions
         switch (notification.Status.ToLower())
         {
             case "created":
-                // ProcessOrderCreated(notification);
+                Console.WriteLine($"{notification.OrderId} has been created and is being processed: {notification.Message}");
                 break;
+
             case "payment_processed":
-                // ProcessPaymentProcessed(notification);
+                Console.WriteLine($"Payment for order {notification.OrderId} has been successfully processed: {notification.Message}");
                 break;
+
             case "shipped":
-                // ProcessOrderShipped(notification);
+                Console.WriteLine($"Order {notification.OrderId} has been shipped and is on its way: {notification.Message}");
                 break;
+
             case "delivered":
-                // ProcessOrderDelivered(notification);
+                Console.WriteLine($"Order {notification.OrderId} has been delivered successfully: {notification.Message}");
                 break;
+
             case "completed":
-                // ProcessOrderCompleted(notification);
+                Console.WriteLine($"Order {notification.OrderId} has been completed and closed: {notification.Message}");
                 break;
+
             default:
                 throw new($"Unknown order status: {notification.Status}");
         }
