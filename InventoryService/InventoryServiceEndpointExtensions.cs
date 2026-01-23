@@ -14,7 +14,7 @@ namespace Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService;
 
 public static class InventoryServiceEndpointExtensions
 {
-    private static readonly IDictionary<string, int> SampleInventory = new Dictionary<string, int>
+    public static readonly IDictionary<string, int> SampleInventory = new Dictionary<string, int>
     {
         { "prod-001", 50 },
         { "prod-002", 30 },

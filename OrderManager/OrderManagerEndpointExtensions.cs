@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Diagrid.Labs.Catalyst.OrderWorkflow.OrderManager;
 
-public static class WorkerEndpointExtensions
+public static class OrderManagerEndpointExtensions
 {
     public static void MapWorkerEndpoints(this WebApplication app)
     {

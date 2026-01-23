@@ -1,4 +1,7 @@
+using System;
 using System.Text.Json;
+using Dapr.Client;
+using Diagrid.Labs.Catalyst.OrderWorkflow.Common.Domain;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.ServiceDefaults;
 using Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService;
 using Microsoft.AspNetCore.Builder;
@@ -40,4 +43,19 @@ app.MapScalarApiReference();
 
 app.MapInventoryServiceEndpoints();
 
-app.Run();
+var daprClient = app.Services.GetRequiredService<DaprClient>();
+
+foreach (var item in InventoryServiceEndpointExtensions.SampleInventory)
+{
+    var inventoryKey = $"inventory:{item.Key}";
+    var inventoryData = new Product
+    {
+        ProductId = item.Key,
+        Quantity = item.Value,
+        LastUpdated = DateTime.UtcNow,
+    };
+
+    await daprClient.SaveStateAsync(ResourceNames.InventoryStore, inventoryKey, inventoryData);
+}
+
+await app.RunAsync();
