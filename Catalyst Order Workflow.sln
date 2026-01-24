@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryService", "Invento
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderManager", "OrderManager\OrderManager.csproj", "{2D763F6C-68A2-4916-A3FA-27341C388A91}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diagrid.Aspire.Hosting.Catalyst", "Diagrid.Aspire.Hosting.Catalyst\Diagrid.Aspire.Hosting.Catalyst.csproj", "{866895E3-6C65-4E8F-909E-83CC62C4CDDB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{2D763F6C-68A2-4916-A3FA-27341C388A91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D763F6C-68A2-4916-A3FA-27341C388A91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D763F6C-68A2-4916-A3FA-27341C388A91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{866895E3-6C65-4E8F-909E-83CC62C4CDDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{866895E3-6C65-4E8F-909E-83CC62C4CDDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{866895E3-6C65-4E8F-909E-83CC62C4CDDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{866895E3-6C65-4E8F-909E-83CC62C4CDDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{40476E32-CC89-4E39-A226-4A7A411EC236} = {FD276977-FED5-430F-8E2F-72DE426DE77E}

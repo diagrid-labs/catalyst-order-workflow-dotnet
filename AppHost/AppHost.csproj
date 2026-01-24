@@ -4,7 +4,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <UserSecretsId>73056489-1fbc-43e2-9c58-59a7e33ba8f3</UserSecretsId>
         <RootNamespace>Diagrid.Labs.Catalyst.OrderWorkflow.Development.AppHost</RootNamespace>
@@ -12,14 +12,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.0.1" />
-        <PackageReference Include="Aspire.Hosting.Valkey" Version="13.0.1" />
-        <PackageReference Include="CommunityToolkit.Aspire.Hosting.Dapr" Version="13.0.0" />
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.0"/>
+        <PackageReference Include="Aspire.Hosting.Valkey" Version="13.1.0"/>
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.Dapr" Version="13.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\OrderManager\OrderManager.csproj" />
-        <ProjectReference Include="..\InventoryService\InventoryService.csproj" />
+        <ProjectReference Include="..\Diagrid.Aspire.Hosting.Catalyst\Diagrid.Aspire.Hosting.Catalyst.csproj" IsAspireProjectResource="false" />
+        <ProjectReference Include="..\OrderManager\OrderManager.csproj"/>
+        <ProjectReference Include="..\InventoryService\InventoryService.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

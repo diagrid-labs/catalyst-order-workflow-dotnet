@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Diagrid.Aspire.Hosting.Catalyst</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- todo: Is this the package we should be depending on? -->
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.0"/>
+    </ItemGroup>
+
+</Project>

@@ -45,6 +45,8 @@ app.MapInventoryServiceEndpoints();
 
 var daprClient = app.Services.GetRequiredService<DaprClient>();
 
+await daprClient.WaitForSidecarAsync();
+
 foreach (var item in InventoryServiceEndpointExtensions.SampleInventory)
 {
     var inventoryKey = $"inventory:{item.Key}";
