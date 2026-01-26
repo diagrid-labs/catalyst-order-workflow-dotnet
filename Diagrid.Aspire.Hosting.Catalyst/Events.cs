@@ -8,6 +8,7 @@ internal static class Events
     {
         var notifications = beforeStartEvent.Services.GetRequiredService<ResourceNotificationService>();
         var applicationModel = beforeStartEvent.Services.GetRequiredService<DistributedApplicationModel>();
+        var provisioner = beforeStartEvent.Services.GetRequiredService<CatalystProvisioner>();
 
         var catalystProject = applicationModel.Resources.Single((resource) => resource is CatalystProjectResource)
             as CatalystProjectResource ?? throw new("Huh?");
@@ -16,44 +17,38 @@ internal static class Events
         // todo: This is going to run after the event completes so that it doesn't hang AppHost start.
         _ = Task.Run(async () => {
 
+            using var runawayCancellationSource = new CancellationTokenSource();
+
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
-                State = new("Starting", KnownResourceStateStyles.Info),
+                State = new(KnownResourceStates.Starting, KnownResourceStateStyles.Info),
             });
 
-            // todo: Need to not have to do this.
-            await Commands.UseCatalyst(cancellationToken);
+            await provisioner.Init(runawayCancellationSource.Token);
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
                 State = new("Ensuring project", KnownResourceStateStyles.Info),
             });
 
-            try
-            {
-                await Commands.CreateProject(projectName, cancellationToken: cancellationToken);
-            }
-            catch
-            {
-                // todo: Would like a silent/idempotent create.
-            }
+            await provisioner.CreateProject(projectName, runawayCancellationSource.Token);
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
                 State = new("Selecting project", KnownResourceStateStyles.Info),
             });
 
-            await Commands.UseProject(projectName, cancellationToken);
+            await provisioner.UseProject(projectName, runawayCancellationSource.Token);
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
                 State = new("Loading project details", KnownResourceStateStyles.Info),
             });
 
-            var projectDetails = await Commands.GetProjectDetails(projectName, cancellationToken);
+            var projectDetails = await provisioner.GetProjectDetails(projectName, runawayCancellationSource.Token);
 
-            catalystProject.HttpEndpoint.SetResult(projectDetails.Status.Endpoints.Http.Uri.ToString());
-            catalystProject.GrpcEndpoint.SetResult(projectDetails.Status.Endpoints.Grpc.Uri.ToString());
+            catalystProject.HttpEndpoint.SetResult(projectDetails.HttpEndpoint.ToString());
+            catalystProject.GrpcEndpoint.SetResult(projectDetails.GrpcEndpoint.ToString());
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
@@ -62,16 +57,10 @@ internal static class Events
 
             foreach (var pair in catalystProject.AppDetails)
             {
-                try
-                {
-                    await Commands.CreateApp(pair.Key.Name, cancellationToken: cancellationToken);
-                }
-                catch
-                {
-                    // todo: Would like a silent/idempotent create.
-                }
+                await provisioner.CreateApp(pair.Key.Name, runawayCancellationSource.Token);
+                var app = await provisioner.GetAppDetails(pair.Key.Name, runawayCancellationSource.Token);
 
-                pair.Value.SetResult(await Commands.GetAppDetails(pair.Key.Name, cancellationToken));
+                pair.Value.SetResult(app);
             }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with

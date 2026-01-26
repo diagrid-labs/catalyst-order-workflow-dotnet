@@ -143,7 +143,7 @@ internal static class Commands
         }
     }
 
-    public static async Task<ProjectDetails> GetProjectDetails(string projectName, CancellationToken cancellationToken)
+    public static async Task<CliProjectDetails> GetProjectDetails(string projectName, CancellationToken cancellationToken)
     {
         var processStartInfo = new ProcessStartInfo
         {
@@ -173,7 +173,7 @@ internal static class Commands
 
             if (process.ExitCode == 0 && ! string.IsNullOrWhiteSpace(output))
             {
-                var projectDetails = JsonSerializer.Deserialize<ProjectDetails>(output);
+                var projectDetails = JsonSerializer.Deserialize<CliProjectDetails>(output);
                 return projectDetails ?? throw new InvalidOperationException("Failed to deserialize project details");
             }
 
@@ -183,7 +183,7 @@ internal static class Commands
         throw new InvalidOperationException("Failed to start diagrid process");
     }
 
-    public static async Task<AppDetails> GetAppDetails(string appId, CancellationToken cancellationToken)
+    public static async Task<CliAppDetails> GetAppDetails(string appId, CancellationToken cancellationToken)
     {
         var processStartInfo = new ProcessStartInfo
         {
@@ -213,7 +213,7 @@ internal static class Commands
 
             if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
             {
-                var appIdentityDetails = JsonSerializer.Deserialize<AppDetails>(output);
+                var appIdentityDetails = JsonSerializer.Deserialize<CliAppDetails>(output);
                 return appIdentityDetails ?? throw new InvalidOperationException("Failed to deserialize app identity details");
             }
 
@@ -339,7 +339,7 @@ internal static class Commands
     }
 }
 
-public record ProjectDetails
+public record CliProjectDetails
 {
     [JsonPropertyName("apiVersion")]
     public string ApiVersion { get; init; } = string.Empty;
@@ -354,7 +354,7 @@ public record ProjectDetails
     public ProjectSpec Spec { get; init; } = new();
 
     [JsonPropertyName("status")]
-    public ProjectStatus Status { get; init; } = new();
+    public CliProjectStatus Status { get; init; } = new();
 }
 
 public record ProjectMetadata
@@ -393,7 +393,7 @@ public record ProjectSpec
     public string Region { get; init; } = string.Empty;
 }
 
-public record ProjectStatus
+public record CliProjectStatus
 {
     [JsonPropertyName("endpoints")]
     public ProjectEndpoints Endpoints { get; init; }
@@ -452,7 +452,7 @@ public record CreateAppOptions
     public bool Wait { get; init; } = true;
 }
 
-public record AppDetails
+public record CliAppDetails
 {
     [JsonPropertyName("apiVersion")]
     public string ApiVersion { get; init; } = string.Empty;

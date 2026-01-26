@@ -4,6 +4,39 @@ namespace Diagrid.Aspire.Hosting.Catalyst;
 
 public static class ResourceBuilderExtensions
 {
+    /// <summary>
+    ///     Associates an Aspire orchestration to a Catalyst project.
+    /// </summary>
+    /// <param name="applicationBuilder"></param>
+    /// <param name="customProjectName"></param>
+    public static void AddCatalystProject(this IDistributedApplicationBuilder applicationBuilder, string? customProjectName = null)
+    {
+        applicationBuilder.Services.AddSingleton<CatalystProvisioner, CliCatalystProvisioner>();
+
+        // todo: Either replace `"aspire"` here with a default inferred from `applicationBuilder`, or make `projectName` a required param.
+        var projectName = customProjectName ?? "aspire";
+
+        // todo: Custom icon, support pending https://github.com/dotnet/aspire/issues/8684
+        var catalystProject = applicationBuilder.AddResource(new CatalystProjectResource
+        {
+            ProjectName = projectName,
+        });
+
+        catalystProject.WithAnnotation(new ResourceUrlAnnotation
+        {
+            Url = "https://google.com",
+            DisplayText = "Project Dashboard",
+        });
+
+        applicationBuilder.Eventing.Subscribe<BeforeStartEvent>(Events.EnsureCatalystProvisioning);
+    }
+
+    /// <summary>
+    ///     Configures a project to use Catalyst.
+    /// </summary>
+    /// <param name="projectResource"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static IResourceBuilder<ProjectResource> WithCatalyst(this IResourceBuilder<ProjectResource> projectResource)
     {
         var applicationBuilder = projectResource.ApplicationBuilder;
@@ -48,12 +81,17 @@ public static class ResourceBuilderExtensions
 
             context.EnvironmentVariables["DAPR_GRPC_ENDPOINT"] = await catalystProject.GrpcEndpoint.Task;
             context.EnvironmentVariables["DAPR_HTTP_ENDPOINT"] = await catalystProject.HttpEndpoint.Task;
-            context.EnvironmentVariables["DAPR_API_TOKEN"] = appDetails.Status.ApiToken;
+            context.EnvironmentVariables["DAPR_API_TOKEN"] = appDetails.ApiToken;
         });
 
         return projectResource;
     }
 
+    /// <summary>
+    ///     Configures a container to use Catalyst.
+    /// </summary>
+    /// <param name="containerResource"></param>
+    /// <returns></returns>
     public static IResourceBuilder<ContainerResource> WithCatalyst(this IResourceBuilder<ContainerResource> containerResource)
     {
         var applicationBuilder = containerResource.ApplicationBuilder;
@@ -64,37 +102,12 @@ public static class ResourceBuilderExtensions
     }
 
     /// <summary>
-    ///     Associates this Aspire orchestration to a Catalyst project.
-    /// </summary>
-    /// <param name="applicationBuilder"></param>
-    /// <param name="customProjectName"></param>
-    public static void AddCatalystProject(this IDistributedApplicationBuilder applicationBuilder, string? customProjectName = null)
-    {
-        // todo: Either replace `"aspire"` here with a default inferred from `applicationBuilder`, or make `projectName` a required param.
-        var projectName = customProjectName ?? "aspire";
-
-        // todo: Custom icon, support pending https://github.com/dotnet/aspire/issues/8684
-        var catalystProject = applicationBuilder.AddResource(new CatalystProjectResource
-        {
-            ProjectName = projectName,
-        });
-
-        catalystProject.WithAnnotation(new ResourceUrlAnnotation
-        {
-            Url = "https://google.com",
-            DisplayText = "Project Dashboard",
-        });
-
-        applicationBuilder.Eventing.Subscribe<BeforeStartEvent>(Events.EnsureCatalystProvisioning);
-    }
-
-    /// <summary>
     ///     Ensures the user has configured a Catalyst project as part of their orchestration.
     /// </summary>
     /// <param name="applicationBuilder"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    private static CatalystProjectResource EnsureCatalystResource(this IDistributedApplicationBuilder applicationBuilder)
+    internal static CatalystProjectResource EnsureCatalystResource(this IDistributedApplicationBuilder applicationBuilder)
     {
         if (applicationBuilder.Resources.SingleOrDefault((resource) => resource is CatalystProjectResource) is not CatalystProjectResource catalystProject)
             throw new($"Remember to configure your Catalyst project by calling {nameof(AddCatalystProject)}.");
