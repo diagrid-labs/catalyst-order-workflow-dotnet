@@ -55,15 +55,11 @@ internal static class Commands
             arguments.Add(options.Region);
         }
 
-        if (options.DeployManagedPubsub)
-        {
-            arguments.Add("--deploy-managed-pubsub");
-        }
+        var deployManagedPubsub = options.DeployManagedPubsub ? "true" : "false";
+        arguments.AddRange([$"--deploy-managed-pubsub={deployManagedPubsub}"]);
 
-        if (options.DeployManagedKv)
-        {
-            arguments.Add("--deploy-managed-kv");
-        }
+        var deployManagedKv = options.DeployManagedKv ? "true" : "false";
+        arguments.AddRange([$"--deploy-managed-kv={deployManagedKv}"]);
 
         if (options.EnableManagedWorkflow)
         {
@@ -426,8 +422,10 @@ public record ProjectEndpointDetails
 public record CreateProjectOptions
 {
     public string? Region { get; init; }
-    public bool DeployManagedPubsub { get; init; }
-    public bool DeployManagedKv { get; init; }
+
+    public bool DeployManagedPubsub { get; init; } = false;
+
+    public bool DeployManagedKv { get; init; } = false;
     public bool EnableManagedWorkflow { get; init; }
 
     public bool Wait { get; init; } = true;

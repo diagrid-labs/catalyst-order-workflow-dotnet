@@ -43,6 +43,12 @@ public interface CatalystProvisioner
     /// <returns></returns>
     Task CreateApp(string name, CancellationToken cancellationToken);
 
+    /// <summary>
+    ///     Gets details about an app in Catalyst.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task<AppDetails> GetAppDetails(string name, CancellationToken cancellationToken);
 }
 

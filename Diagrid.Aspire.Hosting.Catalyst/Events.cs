@@ -4,7 +4,7 @@ namespace Diagrid.Aspire.Hosting.Catalyst;
 
 internal static class Events
 {
-    public static async Task EnsureCatalystProvisioning(BeforeStartEvent beforeStartEvent, CancellationToken cancellationToken)
+    public static Task EnsureCatalystProvisioning(BeforeStartEvent beforeStartEvent, CancellationToken cancellationToken)
     {
         var notifications = beforeStartEvent.Services.GetRequiredService<ResourceNotificationService>();
         var applicationModel = beforeStartEvent.Services.GetRequiredService<DistributedApplicationModel>();
@@ -68,5 +68,7 @@ internal static class Events
                 State = new(KnownResourceStates.Finished, KnownResourceStateStyles.Success),
             });
         });
+
+        return Task.CompletedTask;
     }
 }
