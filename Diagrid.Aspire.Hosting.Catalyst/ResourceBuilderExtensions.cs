@@ -58,7 +58,7 @@ public static class ResourceBuilderExtensions
                     // todo: I want a better, more explicit PWD than this.
                     ".",
                     [
-                        "dev", "run", "--approve",
+                        "dev", "run",
                         "--project", catalystProjectBuilder.Resource.ProjectName,
                         "--app-id", resourceBuilder.Resource.Name,
                         "--app-port", httpEndpoint.Property(EndpointProperty.Port),

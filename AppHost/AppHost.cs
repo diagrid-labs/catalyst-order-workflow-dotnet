@@ -16,7 +16,9 @@ builder.AddDapr();
 var orderManager = builder.AddProject<OrderManager>("order-manager");
 var inventoryService = builder.AddProject<InventoryService>("inventory-service");
 
-if (useCatalyst) builder.ConfigureForCatalyst(orderManager, inventoryService);
-else builder.ConfigureForLocal(orderManager, inventoryService);
+if (useCatalyst)
+    builder.ConfigureForCatalyst(orderManager, inventoryService);
+else
+    builder.ConfigureForLocal(orderManager, inventoryService);
 
 builder.Build().Run();

@@ -44,19 +44,7 @@ Running with the Diagrid Catalyst profile has the following prerequisites:
 - [Diagrid CLI](https://docs.diagrid.io/catalyst/references/cli-reference/intro)
 - A diagrid Account, visit [catalyst.diagrid.io](https://catalyst.diagrid.io)
 - [.NET SDK](https://dotnet.microsoft.com/en-us)
-
-Before running the project, grab the values for your Catalyst project and apps, and run the following commands in
-the `AppHost` project directory, substituting the values as appropriate:
-
-```bash
-cd AppHost
-dotnet user-secrets set "OrderManagerCatalystApiToken" "YOUR_CATALYST_ORDER_MANAGER_API_TOKEN_HERE"
-dotnet user-secrets set "OrderManagerCatalystGrpcEndpoint" "YOUR_CATALYST_ORDER_MANAGER_GRPC_ENDPOINT_HERE"
-dotnet user-secrets set "OrderManagerCatalystHttpEndpoint" "YOUR_CATALYST_ORDER_MANAGER_HTTP_ENDPOINT_HERE"
-dotnet user-secrets set "InventoryServiceCatalystApiToken" "YOUR_CATALYST_INVENTORY_SERVICE_API_TOKEN_HERE"
-dotnet user-secrets set "InventoryServiceCatalystGrpcEndpoint" "YOUR_CATALYST_INVENTORY_SERVICE_GRPC_ENDPOINT_HERE"
-dotnet user-secrets set "InventoryServiceCatalystHttpEndpoint" "YOUR_CATALYST_INVENTORY_SERVICE_HTTP_ENDPOINT_HERE"
-```
+- Aspire
 
 Then, all you need to do is run the project with the `http-local-catalyst` profile either from the CLI or using your IDE.
 
