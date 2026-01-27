@@ -333,6 +333,102 @@ internal static class Commands
             throw new InvalidOperationException("Failed to start diagrid process");
         }
     }
+
+    public static async Task CreateComponent(
+        ComponentDescriptor component,
+        CreateComponentOptions? options = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        options ??= new();
+
+        var arguments = new List<string>
+        {
+            "component",
+            "create",
+        };
+
+        if (options.Prompt)
+        {
+            arguments.Add("--prompt");
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(component.Name))
+            {
+                throw new ArgumentException("Component name required", nameof(component));
+            }
+
+            if (string.IsNullOrWhiteSpace(component.Type))
+            {
+                throw new ArgumentException("Component type required", nameof(component));
+            }
+
+            arguments.Add(component.Name);
+            arguments.Add("--type");
+            arguments.Add(component.Type);
+
+            var hasMetadata = false;
+
+            foreach (var pair in component.Metadata)
+            {
+                hasMetadata = true;
+                arguments.Add("--metadata");
+                arguments.Add($"{pair.Key}={pair.Value}");
+            }
+
+            if (!hasMetadata)
+            {
+                throw new ArgumentException("Component metadata required", nameof(component));
+            }
+
+            if (component.Scopes.Count > 0)
+            {
+                arguments.Add("--scopes");
+                arguments.Add(string.Join(",", component.Scopes));
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Project))
+        {
+            arguments.Add("--project");
+            arguments.Add(options.Project);
+        }
+
+        if (options.Wait)
+        {
+            arguments.Add("--wait");
+        }
+
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = "diagrid",
+            Arguments = string.Join(" ", arguments),
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        using var process = Process.Start(processStartInfo);
+
+        if (process != null)
+        {
+            await process.WaitForExitAsync(cancellationToken);
+
+            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
+
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"Failed to create component: {error}");
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException("Failed to start diagrid process");
+        }
+    }
 }
 
 public record CliProjectDetails
@@ -448,6 +544,13 @@ public record CreateAppOptions
     public int? AppChannelTimeoutSeconds { get; init; }
 
     public bool Wait { get; init; } = true;
+}
+
+public record CreateComponentOptions
+{
+    public string? Project { get; init; }
+    public bool Wait { get; init; } = true;
+    public bool Prompt { get; init; }
 }
 
 public record CliAppDetails

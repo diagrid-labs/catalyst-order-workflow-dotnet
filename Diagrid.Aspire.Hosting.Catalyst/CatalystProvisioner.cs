@@ -50,6 +50,8 @@ public interface CatalystProvisioner
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<AppDetails> GetAppDetails(string name, CancellationToken cancellationToken);
+
+    Task CreateComponent(ComponentDescriptor descriptor);
 }
 
 public record ProjectDetails
@@ -62,4 +64,12 @@ public record ProjectDetails
 public record AppDetails
 {
     public required string ApiToken { get; init; }
+}
+
+public record ComponentDescriptor
+{
+    public required string Name { get; init; }
+    public required string Type { get; set; }
+    public IList<string> Scopes { get; init; } = [];
+    public required IDictionary<string, object> Metadata { get; init; } = new Dictionary<string, object>();
 }

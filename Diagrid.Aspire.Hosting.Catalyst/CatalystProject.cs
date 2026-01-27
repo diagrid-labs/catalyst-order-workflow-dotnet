@@ -1,6 +1,6 @@
 namespace Diagrid.Aspire.Hosting.Catalyst;
 
-public class CatalystProjectResource : IResource
+public class CatalystProject : IResource
 {
     public string Name => "catalyst";
 
@@ -13,5 +13,5 @@ public class CatalystProjectResource : IResource
 
     public Dictionary<Resource, TaskCompletionSource<AppDetails>> AppDetails { get; init; } = new();
 
-    public Dictionary<string, object> Components { get; init; } = new();
+    public Dictionary<string, ComponentDescriptor> Components { get; init; } = new();
 }

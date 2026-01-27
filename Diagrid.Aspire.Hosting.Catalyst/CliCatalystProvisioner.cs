@@ -57,4 +57,9 @@ public class CliCatalystProvisioner : CatalystProvisioner
             ApiToken = appDetails.Status.ApiToken,
         };
     }
+
+    public async Task CreateComponent(ComponentDescriptor descriptor)
+    {
+        await Commands.CreateComponent(descriptor);
+    }
 }

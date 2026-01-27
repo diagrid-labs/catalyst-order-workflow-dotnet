@@ -10,8 +10,8 @@ internal static class Events
         var applicationModel = beforeStartEvent.Services.GetRequiredService<DistributedApplicationModel>();
         var provisioner = beforeStartEvent.Services.GetRequiredService<CatalystProvisioner>();
 
-        var catalystProject = applicationModel.Resources.Single((resource) => resource is CatalystProjectResource)
-            as CatalystProjectResource ?? throw new("Huh?");
+        var catalystProject = applicationModel.Resources.Single((resource) => resource is CatalystProject)
+            as CatalystProject ?? throw new("Huh?");
         var projectName = catalystProject.ProjectName;
 
         // todo: This is going to run after the event completes so that it doesn't hang AppHost start.
@@ -61,6 +61,16 @@ internal static class Events
                 var app = await provisioner.GetAppDetails(pair.Key.Name, runawayCancellationSource.Token);
 
                 pair.Value.SetResult(app);
+            }
+
+            await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+            {
+                State = new("Ensuring components", KnownResourceStateStyles.Info),
+            });
+
+            foreach (var pair in catalystProject.Components)
+            {
+                await provisioner.CreateComponent(pair.Value);
             }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with

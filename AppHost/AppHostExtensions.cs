@@ -58,21 +58,21 @@ public static class AppHostExtensions
     {
         builder.AddCatalystProject("catalyst-order-workflow-local");
 
-        builder.AddCatalystComponent("shop-activity", new DiagridPubSub
-        {
-            Metadata = new()
-            {
-                PubSubName = "shop-activity",
-            },
-        });
-
-        builder.AddCatalystComponent("inventory-store", new DiagridStateStore
-        {
-            Metadata = new()
-            {
-                State = "inventory-store",
-            },
-        });
+        // builder.AddCatalystComponent("shop-activity", new DiagridPubSub
+        // {
+        //     Metadata = new()
+        //     {
+        //         PubSubName = "shop-activity",
+        //     },
+        // });
+        //
+        // builder.AddCatalystComponent("inventory-store", new DiagridStateStore
+        // {
+        //     Metadata = new()
+        //     {
+        //         State = "inventory-store",
+        //     },
+        // });
 
         orderManager.WithCatalyst();
         inventoryService.WithCatalyst();
