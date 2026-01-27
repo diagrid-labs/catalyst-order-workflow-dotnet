@@ -12,4 +12,6 @@ public class CatalystProjectResource : IResource
     public TaskCompletionSource<string> GrpcEndpoint { get; } = new();
 
     public Dictionary<Resource, TaskCompletionSource<AppDetails>> AppDetails { get; init; } = new();
+
+    public Dictionary<string, object> Components { get; init; } = new();
 }

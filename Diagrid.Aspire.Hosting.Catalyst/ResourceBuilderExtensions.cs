@@ -34,42 +34,45 @@ public static class ResourceBuilderExtensions
     /// <summary>
     ///     Configures a project to use Catalyst.
     /// </summary>
-    /// <param name="projectResource"></param>
+    /// <param name="resourceBuilder"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static IResourceBuilder<ProjectResource> WithCatalyst(this IResourceBuilder<ProjectResource> projectResource)
+    public static IResourceBuilder<ResourceType> WithCatalyst<ResourceType>(this IResourceBuilder<ResourceType> resourceBuilder)
+    where ResourceType : Resource, IResourceWithEnvironment, IResourceWithWaitSupport
     {
-        var applicationBuilder = projectResource.ApplicationBuilder;
+        var applicationBuilder = resourceBuilder.ApplicationBuilder;
         var catalystProjectBuilder = applicationBuilder.CreateResourceBuilder(applicationBuilder.EnsureCatalystResource());
 
-        projectResource.WaitForCompletion(catalystProjectBuilder);
+        resourceBuilder.WaitForCompletion(catalystProjectBuilder);
 
-        var httpEndpoint = projectResource.Resource.GetEndpoints().FirstOrDefault((endpoint) => endpoint.IsHttp);
-        if (httpEndpoint is not null)
+        if (
+            resourceBuilder.Resource is IResourceWithEndpoints resourceWithEndpoints
+            && resourceWithEndpoints.GetEndpoints().FirstOrDefault((endpoint) => endpoint.IsHttp) is {} httpEndpoint
+        )
         {
-            var catalystProxy = applicationBuilder.AddExecutable(
-                $"{projectResource.Resource.Name}-catalyst-proxy",
-                "diagrid",
-                // todo: I want a better, more explicit PWD than this.
-                ".",
-                [
-                    "dev", "run", "--approve",
-                    "--project", catalystProjectBuilder.Resource.ProjectName,
-                    "--app-id", projectResource.Resource.Name,
-                    "--app-port", httpEndpoint.Property(EndpointProperty.Port),
-                ]
-            )
-            .WithReference(projectResource)
-            .WaitForCompletion(catalystProjectBuilder);
+            var catalystProxy = applicationBuilder
+                .AddExecutable(
+                    $"{resourceBuilder.Resource.Name}-catalyst-proxy",
+                    "diagrid",
+                    // todo: I want a better, more explicit PWD than this.
+                    ".",
+                    [
+                        "dev", "run", "--approve",
+                        "--project", catalystProjectBuilder.Resource.ProjectName,
+                        "--app-id", resourceBuilder.Resource.Name,
+                        "--app-port", httpEndpoint.Property(EndpointProperty.Port),
+                    ]
+                )
+                .WaitForCompletion(catalystProjectBuilder);
 
-            projectResource
+            resourceBuilder
                 .WaitFor(catalystProxy)
                 .WithChildRelationship(catalystProxy);
 
-            catalystProjectBuilder.Resource.AppDetails[projectResource.Resource] = new();
+            catalystProjectBuilder.Resource.AppDetails[resourceBuilder.Resource] = new();
         }
 
-        projectResource.WithEnvironment(async (context) =>
+        resourceBuilder.WithEnvironment(async (context) =>
         {
             var applicationModel = (DistributedApplicationModel) context.ExecutionContext.ServiceProvider
                 .GetRequiredService(typeof(DistributedApplicationModel));
@@ -77,28 +80,36 @@ public static class ResourceBuilderExtensions
             var catalystProject = applicationModel.Resources.FirstOrDefault((resource) => resource is CatalystProjectResource) as CatalystProjectResource
                 ?? throw new("This project is missing a Catalyst project resource.");
 
-            var appDetails = await catalystProject.AppDetails[projectResource.Resource].Task;
+            var appDetails = await catalystProject.AppDetails[resourceBuilder.Resource].Task;
 
             context.EnvironmentVariables["DAPR_GRPC_ENDPOINT"] = await catalystProject.GrpcEndpoint.Task;
             context.EnvironmentVariables["DAPR_HTTP_ENDPOINT"] = await catalystProject.HttpEndpoint.Task;
             context.EnvironmentVariables["DAPR_API_TOKEN"] = appDetails.ApiToken;
         });
 
-        return projectResource;
+        return resourceBuilder;
     }
 
-    /// <summary>
-    ///     Configures a container to use Catalyst.
-    /// </summary>
-    /// <param name="containerResource"></param>
-    /// <returns></returns>
-    public static IResourceBuilder<ContainerResource> WithCatalyst(this IResourceBuilder<ContainerResource> containerResource)
+    public static void AddCatalystComponent(
+        this IDistributedApplicationBuilder applicationBuilder,
+        string name,
+        string type,
+        IDictionary<string, object> spec,
+        IList<string> scopes
+    )
     {
-        var applicationBuilder = containerResource.ApplicationBuilder;
 
-        applicationBuilder.EnsureCatalystResource();
+    }
 
-        return containerResource;
+    public static void AddCatalystComponent<MetadataType>(
+        this IDistributedApplicationBuilder applicationBuilder,
+        string name,
+        CatalystComponent<MetadataType> component
+    )
+    {
+        var catalystProject = applicationBuilder.EnsureCatalystResource();
+
+        catalystProject.Components.Add(name, component);
     }
 
     /// <summary>

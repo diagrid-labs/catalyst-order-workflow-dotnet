@@ -4,6 +4,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using CommunityToolkit.Aspire.Hosting.Dapr;
 using Diagrid.Aspire.Hosting.Catalyst;
+using Diagrid.Aspire.Hosting.Catalyst.ComponentSpec;
 
 namespace Diagrid.Labs.Catalyst.OrderWorkflow.Development.AppHost;
 
@@ -56,6 +57,22 @@ public static class AppHostExtensions
     public static void ConfigureForCatalyst(this IDistributedApplicationBuilder builder, IResourceBuilder<ProjectResource> orderManager, IResourceBuilder<ProjectResource> inventoryService)
     {
         builder.AddCatalystProject("catalyst-order-workflow-local");
+
+        builder.AddCatalystComponent("shop-activity", new DiagridPubSub
+        {
+            Metadata = new()
+            {
+                PubSubName = "shop-activity",
+            },
+        });
+
+        builder.AddCatalystComponent("inventory-store", new DiagridStateStore
+        {
+            Metadata = new()
+            {
+                State = "inventory-store",
+            },
+        });
 
         orderManager.WithCatalyst();
         inventoryService.WithCatalyst();

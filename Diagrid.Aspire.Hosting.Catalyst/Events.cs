@@ -52,7 +52,7 @@ internal static class Events
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
-                State = new("Creating applications", KnownResourceStateStyles.Info),
+                State = new("Ensuring applications", KnownResourceStateStyles.Info),
             });
 
             foreach (var pair in catalystProject.AppDetails)
