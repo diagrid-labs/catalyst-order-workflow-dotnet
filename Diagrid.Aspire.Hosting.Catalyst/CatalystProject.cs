@@ -3,15 +3,16 @@ namespace Diagrid.Aspire.Hosting.Catalyst;
 public class CatalystProject : IResource
 {
     public string Name => "catalyst";
-
     public required string ProjectName { get; init; }
-
     public ResourceAnnotationCollection Annotations { get; init; } = [];
 
-    public TaskCompletionSource<string> HttpEndpoint { get; } = new();
-    public TaskCompletionSource<string> GrpcEndpoint { get; } = new();
+    internal TaskCompletionSource<string> HttpEndpoint { get; } = new();
+    internal TaskCompletionSource<string> GrpcEndpoint { get; } = new();
 
-    public Dictionary<Resource, TaskCompletionSource<AppDetails>> AppDetails { get; init; } = new();
+    internal Dictionary<Resource, TaskCompletionSource<AppDetails>> AppDetails { get; init; } = new();
 
-    public Dictionary<string, ComponentDescriptor> Components { get; init; } = new();
+    internal Dictionary<string, PubSubDescriptor> PubSubs { get; init; } = new();
+    internal Dictionary<string, KvStoreDescriptor> KvStores { get; init; } = new();
+
+    internal Dictionary<string, ComponentDescriptor> Components { get; init; } = new();
 }

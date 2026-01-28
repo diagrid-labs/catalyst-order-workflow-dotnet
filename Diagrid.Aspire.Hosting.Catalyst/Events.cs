@@ -65,12 +65,36 @@ internal static class Events
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
+                State = new("Ensuring services", KnownResourceStateStyles.Info),
+            });
+
+            foreach (var pair in catalystProject.PubSubs)
+            {
+                await provisioner.CreatePubSub(pair.Key, new()
+                {
+                    Project = projectName,
+                    Scopes = pair.Value.Scopes,
+                }, runawayCancellationSource.Token);
+            }
+
+            foreach (var pair in catalystProject.PubSubs)
+            {
+                await provisioner.CreatePubSub(pair.Key, pair.Value, runawayCancellationSource.Token);
+            }
+
+            foreach (var pair in catalystProject.KvStores)
+            {
+                await provisioner.CreateKvStore(pair.Key, pair.Value, runawayCancellationSource.Token);
+            }
+
+            await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+            {
                 State = new("Ensuring components", KnownResourceStateStyles.Info),
             });
 
             foreach (var pair in catalystProject.Components)
             {
-                await provisioner.CreateComponent(pair.Value);
+                await provisioner.CreateComponent(pair.Value, projectName, runawayCancellationSource.Token);
             }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with

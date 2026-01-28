@@ -58,8 +58,29 @@ public class CliCatalystProvisioner : CatalystProvisioner
         };
     }
 
-    public async Task CreateComponent(ComponentDescriptor descriptor)
+    public async Task CreateComponent(ComponentDescriptor descriptor, string projectName, CancellationToken cancellationToken)
     {
-        await Commands.CreateComponent(descriptor);
+        await Commands.CreateComponent(descriptor, new()
+        {
+            Project = projectName,
+        }, cancellationToken);
+    }
+
+    public async Task CreatePubSub(string name, PubSubDescriptor options, CancellationToken cancellationToken)
+    {
+        await Commands.CreatePubSub(name, new()
+        {
+            Project = options.Project,
+            Scopes = options.Scopes,
+        }, cancellationToken);
+    }
+
+    public async Task CreateKvStore(string name, KvStoreDescriptor options, CancellationToken cancellationToken)
+    {
+        await Commands.CreateKvStore(name, new()
+        {
+            Project = options.Project,
+            Scopes = options.Scopes,
+        }, cancellationToken);
     }
 }

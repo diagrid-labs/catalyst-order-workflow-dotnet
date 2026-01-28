@@ -51,7 +51,32 @@ public interface CatalystProvisioner
     /// <returns></returns>
     Task<AppDetails> GetAppDetails(string name, CancellationToken cancellationToken);
 
-    Task CreateComponent(ComponentDescriptor descriptor);
+    /// <summary>
+    ///     Creates a component in Catalyst.
+    /// </summary>
+    /// <param name="descriptor"></param>
+    /// <param name="projectName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task CreateComponent(ComponentDescriptor descriptor, string projectName, CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Creates a Catalyst pubsub service.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="options"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task CreatePubSub(string name, PubSubDescriptor options, CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Creates a Catalyst KV store.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="options"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task CreateKvStore(string name, KvStoreDescriptor options, CancellationToken cancellationToken);
 }
 
 public record ProjectDetails
@@ -66,10 +91,22 @@ public record AppDetails
     public required string ApiToken { get; init; }
 }
 
+public record PubSubDescriptor
+{
+    public required string Project { get; init; }
+    public IList<string> Scopes { get; init; } = [];
+}
+
+public record KvStoreDescriptor
+{
+    public required string Project { get; init; }
+    public IList<string> Scopes { get; init; } = [];
+}
+
 public record ComponentDescriptor
 {
     public required string Name { get; init; }
-    public required string Type { get; set; }
+    public required string Type { get; init; }
     public IList<string> Scopes { get; init; } = [];
-    public required IDictionary<string, object> Metadata { get; init; } = new Dictionary<string, object>();
+    public required IDictionary<string, object?> Metadata { get; init; } = new Dictionary<string, object?>();
 }

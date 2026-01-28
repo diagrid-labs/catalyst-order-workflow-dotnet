@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Diagrid.Aspire.Hosting.Catalyst;
@@ -10,7 +11,7 @@ public static class ResourceBuilderExtensions
     /// </summary>
     /// <param name="applicationBuilder"></param>
     /// <param name="customProjectName"></param>
-    public static void AddCatalystProject(this IDistributedApplicationBuilder applicationBuilder, string? customProjectName = null)
+    public static IResourceBuilder<CatalystProject> AddCatalystProject(this IDistributedApplicationBuilder applicationBuilder, string? customProjectName = null)
     {
         applicationBuilder.Services.AddSingleton<CatalystProvisioner, CliCatalystProvisioner>();
 
@@ -30,6 +31,8 @@ public static class ResourceBuilderExtensions
         });
 
         applicationBuilder.Eventing.Subscribe<BeforeStartEvent>(Events.EnsureCatalystProvisioning);
+
+        return catalystProject;
     }
 
     /// <summary>
@@ -94,22 +97,20 @@ public static class ResourceBuilderExtensions
     /// <summary>
     ///     Adds a weakly-typed component to the Catalyst project.
     /// </summary>
-    /// <param name="applicationBuilder"></param>
+    /// <param name="catalystProject"></param>
     /// <param name="name"></param>
     /// <param name="type"></param>
     /// <param name="metadata"></param>
     /// <param name="scopes"></param>
     public static void AddCatalystComponent(
-        this IDistributedApplicationBuilder applicationBuilder,
+        this IResourceBuilder<CatalystProject> catalystProject,
         string name,
         string type,
-        IDictionary<string, object> metadata,
+        IDictionary<string, object?> metadata,
         IList<string> scopes
     )
     {
-        var catalystProject = applicationBuilder.EnsureCatalystResource();
-
-        catalystProject.Components.Add(name, new()
+        catalystProject.Resource.Components.Add(name, new()
         {
             Name = name,
             Type = type,
@@ -121,33 +122,81 @@ public static class ResourceBuilderExtensions
     /// <summary>
     ///     Adds a strongly-typed component to the Catalyst project.
     /// </summary>
-    /// <param name="applicationBuilder"></param>
+    /// <param name="catalystProject"></param>
     /// <param name="name"></param>
     /// <param name="component"></param>
     /// <typeparam name="MetadataType"></typeparam>
     /// <exception cref="Exception"></exception>
-    public static void AddCatalystComponent<MetadataType>(
-        this IDistributedApplicationBuilder applicationBuilder,
+    public static IResourceBuilder<CatalystProject> AddCatalystComponent<MetadataType>(
+        this IResourceBuilder<CatalystProject> catalystProject,
         string name,
         CatalystComponent<MetadataType> component
     )
     {
-        var catalystProject = applicationBuilder.EnsureCatalystResource();
-
         var metadataSerializerOptions = new JsonSerializerOptions
         {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
-        var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(JsonSerializer.Serialize(component.Metadata, metadataSerializerOptions))
+        var serialized = JsonSerializer.Serialize(component.Metadata, metadataSerializerOptions);
+        var metadata = JsonSerializer.Deserialize<Dictionary<string, object?>>(serialized, metadataSerializerOptions)
             ?? throw new("Failed to prepare component metadata.");
 
-        catalystProject.Components.Add(name, new()
+        catalystProject.Resource.Components.Add(name, new()
         {
             Name = name,
             Type = component.Type,
             Scopes = component.Scopes,
             Metadata = metadata,
         });
+
+        return catalystProject;
+    }
+
+    /// <summary>
+    ///     Adds a Catalyst-managed PubSub to the Catalyst project.
+    /// </summary>
+    /// <param name="catalystProject"></param>
+    /// <param name="name"></param>
+    /// <param name="scopes"></param>
+    public static IResourceBuilder<CatalystProject> AddCatalystPubSub(
+        this IResourceBuilder<CatalystProject> catalystProject,
+        string name,
+        IList<string>? scopes = null
+    )
+    {
+        var pubSub = new PubSubDescriptor
+        {
+            Project = catalystProject.Resource.ProjectName,
+            Scopes = scopes ?? [],
+        };
+
+        catalystProject.Resource.PubSubs.Add(name, pubSub);
+
+        return catalystProject;
+    }
+
+    /// <summary>
+    ///     Adds a Catalyst-managed KV store to the Catalyst project.
+    /// </summary>
+    /// <param name="catalystProject"></param>
+    /// <param name="name"></param>
+    /// <param name="scopes"></param>
+    public static IResourceBuilder<CatalystProject> AddCatalystKvStore(
+        this IResourceBuilder<CatalystProject> catalystProject,
+        string name,
+        IList<string>? scopes = null
+    )
+    {
+        var kvStore = new KvStoreDescriptor
+        {
+            Project = catalystProject.Resource.ProjectName,
+            Scopes = scopes ?? [],
+        };
+
+        catalystProject.Resource.KvStores.Add(name, kvStore);
+
+        return catalystProject;
     }
 
     /// <summary>

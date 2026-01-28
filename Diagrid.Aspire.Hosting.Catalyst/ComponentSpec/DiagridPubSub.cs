@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Diagrid.Aspire.Hosting.Catalyst.ComponentSpec;
 
@@ -15,9 +15,9 @@ public class DiagridPubSub : CatalystComponent<DiagridPubSubSpecMetadata>
 
 public record DiagridPubSubSpecMetadata
 {
-    [JsonProperty("pubsub")]
+    [JsonPropertyName("pubsub")]
     public required string PubSubName { get; init; }
 
-    [JsonProperty("consumerID")]
+    [JsonPropertyName("consumerID")]
     public string? ConsumerId { get; init; }
 }

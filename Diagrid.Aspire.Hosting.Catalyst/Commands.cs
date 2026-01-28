@@ -335,58 +335,51 @@ internal static class Commands
     }
 
     public static async Task CreateComponent(
-        ComponentDescriptor component,
-        CreateComponentOptions? options = null,
+        ComponentDescriptor descriptor,
+        CreateComponentOptions options,
         CancellationToken cancellationToken = default
     )
     {
-        options ??= new();
-
         var arguments = new List<string>
         {
             "component",
             "create",
         };
 
-        if (options.Prompt)
+        if (string.IsNullOrWhiteSpace(descriptor.Name))
         {
-            arguments.Add("--prompt");
+            throw new ArgumentException("Component name required", nameof(descriptor));
         }
-        else
+
+        if (string.IsNullOrWhiteSpace(descriptor.Type))
         {
-            if (string.IsNullOrWhiteSpace(component.Name))
-            {
-                throw new ArgumentException("Component name required", nameof(component));
-            }
+            throw new ArgumentException("Component type required", nameof(descriptor));
+        }
 
-            if (string.IsNullOrWhiteSpace(component.Type))
-            {
-                throw new ArgumentException("Component type required", nameof(component));
-            }
+        arguments.Add(descriptor.Name);
+        arguments.Add("--type");
+        arguments.Add(descriptor.Type);
 
-            arguments.Add(component.Name);
-            arguments.Add("--type");
-            arguments.Add(component.Type);
+        var hasMetadata = false;
 
-            var hasMetadata = false;
+        foreach (var pair in descriptor.Metadata)
+        {
+            if (pair.Value is null) continue;
 
-            foreach (var pair in component.Metadata)
-            {
-                hasMetadata = true;
-                arguments.Add("--metadata");
-                arguments.Add($"{pair.Key}={pair.Value}");
-            }
+            hasMetadata = true;
+            arguments.Add("--metadata");
+            arguments.Add($"{pair.Key}={pair.Value}");
+        }
 
-            if (!hasMetadata)
-            {
-                throw new ArgumentException("Component metadata required", nameof(component));
-            }
+        if (! hasMetadata)
+        {
+            throw new ArgumentException("Component metadata required", nameof(descriptor));
+        }
 
-            if (component.Scopes.Count > 0)
-            {
-                arguments.Add("--scopes");
-                arguments.Add(string.Join(",", component.Scopes));
-            }
+        if (descriptor.Scopes.Count > 0)
+        {
+            arguments.Add("--scopes");
+            arguments.Add(string.Join(",", descriptor.Scopes));
         }
 
         if (!string.IsNullOrWhiteSpace(options.Project))
@@ -422,6 +415,136 @@ internal static class Commands
             if (process.ExitCode != 0)
             {
                 throw new InvalidOperationException($"Failed to create component: {error}");
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException("Failed to start diagrid process");
+        }
+    }
+
+    public static async Task CreatePubSub(
+        string pubsubName,
+        CreatePubSubOptions options,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(pubsubName))
+        {
+            throw new ArgumentException("Pub/Sub broker name required", nameof(pubsubName));
+        }
+
+        var arguments = new List<string>
+        {
+            "pubsub",
+            "create",
+            pubsubName,
+        };
+
+        if (!string.IsNullOrWhiteSpace(options.Project))
+        {
+            arguments.Add("--project");
+            arguments.Add(options.Project);
+        }
+
+        if (options.Scopes.Count > 0)
+        {
+            arguments.Add("--scopes");
+            arguments.Add(string.Join(",", options.Scopes));
+        }
+
+        if (options.Wait)
+        {
+            arguments.Add("--wait");
+        }
+
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = "diagrid",
+            Arguments = string.Join(" ", arguments),
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        using var process = Process.Start(processStartInfo);
+
+        if (process != null)
+        {
+            await process.WaitForExitAsync(cancellationToken);
+
+            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
+
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"Failed to create pubsub: {error}");
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException("Failed to start diagrid process");
+        }
+    }
+
+    public static async Task CreateKvStore(
+        string kvStoreName,
+        CreateKvStoreOptions options,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(kvStoreName))
+        {
+            throw new ArgumentException("KV Store name required", nameof(kvStoreName));
+        }
+
+        var arguments = new List<string>
+        {
+            "kv",
+            "create",
+            kvStoreName,
+        };
+
+        if (!string.IsNullOrWhiteSpace(options.Project))
+        {
+            arguments.Add("--project");
+            arguments.Add(options.Project);
+        }
+
+        if (options.Scopes.Count > 0)
+        {
+            arguments.Add("--scopes");
+            arguments.Add(string.Join(",", options.Scopes));
+        }
+
+        if (options.Wait)
+        {
+            arguments.Add("--wait");
+        }
+
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = "diagrid",
+            Arguments = string.Join(" ", arguments),
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        using var process = Process.Start(processStartInfo);
+
+        if (process != null)
+        {
+            await process.WaitForExitAsync(cancellationToken);
+
+            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
+
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"Failed to create kv store: {error}");
             }
         }
         else
@@ -549,9 +672,22 @@ public record CreateAppOptions
 
 public record CreateComponentOptions
 {
-    public string? Project { get; init; }
+    public required string Project { get; init; }
     public bool Wait { get; init; } = true;
-    public bool Prompt { get; init; }
+}
+
+public record CreatePubSubOptions
+{
+    public required string Project { get; init; }
+    public IList<string> Scopes { get; init; } = [];
+    public bool Wait { get; init; } = true;
+}
+
+public record CreateKvStoreOptions
+{
+    public required string Project { get; init; }
+    public IList<string> Scopes { get; init; } = [];
+    public bool Wait { get; init; } = true;
 }
 
 public record CliAppDetails
