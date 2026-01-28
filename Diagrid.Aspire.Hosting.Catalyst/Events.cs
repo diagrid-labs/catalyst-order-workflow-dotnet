@@ -1,3 +1,4 @@
+using Diagrid.Aspire.Hosting.Catalyst.Logo;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -21,7 +22,8 @@ internal static class Events
         // todo: This is going to run after the event completes so that it doesn't hang AppHost start.
         _ = Task.Run(async () => {
 
-            logger.LogInformation("Welcome to Catalyst!");
+            logger.LogInformation("\n" + LogoPicker.PickRandomLogo() + "\n");
+            logger.LogInformation("Welcome to the Catalyst Aspire integration!");
             logger.LogInformation("Give us a moment while we get things ready for you...");
 
             using var runawayCancellationSource = new CancellationTokenSource();
