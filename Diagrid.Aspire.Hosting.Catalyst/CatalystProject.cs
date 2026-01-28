@@ -1,3 +1,5 @@
+using Diagrid.Aspire.Hosting.Catalyst.Model;
+
 namespace Diagrid.Aspire.Hosting.Catalyst;
 
 public class CatalystProject : IResource

@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using Diagrid.Aspire.Hosting.Catalyst.Cli.Options;
+using Diagrid.Aspire.Hosting.Catalyst.Cli.Output;
+using Diagrid.Aspire.Hosting.Catalyst.Model;
 
-namespace Diagrid.Aspire.Hosting.Catalyst;
+namespace Diagrid.Aspire.Hosting.Catalyst.Cli;
 
 internal static class Commands
 {
@@ -102,7 +104,7 @@ internal static class Commands
 
             if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                throw new InvalidOperationException($"Failed to create project: {error}");
+                throw new InvalidOperationException(output);
             }
         }
         else
@@ -169,7 +171,7 @@ internal static class Commands
 
             if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                throw new InvalidOperationException($"Failed to get project details: {error}");
+                throw new InvalidOperationException(output);
             }
 
             var projectDetails = JsonSerializer.Deserialize<CliProjectDetails>(output);
@@ -209,7 +211,7 @@ internal static class Commands
 
             if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                throw new InvalidOperationException($"Failed to get app identity details: {error}");
+                throw new InvalidOperationException(output);
             }
 
             var appIdentityDetails = JsonSerializer.Deserialize<CliAppDetails>(output);
@@ -325,7 +327,7 @@ internal static class Commands
 
             if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                throw new InvalidOperationException($"Failed to create app ID: {error}");
+                throw new InvalidOperationException(output);
             }
         }
         else
@@ -414,7 +416,7 @@ internal static class Commands
 
             if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                throw new InvalidOperationException($"Failed to create component: {error}");
+                throw new InvalidOperationException(output);
             }
         }
         else
@@ -479,7 +481,7 @@ internal static class Commands
 
             if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                throw new InvalidOperationException($"Failed to create pubsub: {error}");
+                throw new InvalidOperationException(output);
             }
         }
         else
@@ -544,7 +546,7 @@ internal static class Commands
 
             if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                throw new InvalidOperationException($"Failed to create kv store: {error}");
+                throw new InvalidOperationException(output);
             }
         }
         else
@@ -596,7 +598,7 @@ internal static class Commands
 
             if (process.ExitCode != 0)
             {
-                throw new InvalidOperationException($"Failed to list kv stores: {error}");
+                throw new InvalidOperationException(output);
             }
 
             using var document = JsonDocument.Parse(output);
@@ -613,230 +615,4 @@ internal static class Commands
 
         throw new InvalidOperationException("Failed to start diagrid process");
     }
-}
-
-public record CliProjectDetails
-{
-    [JsonPropertyName("apiVersion")]
-    public string ApiVersion { get; init; } = string.Empty;
-
-    [JsonPropertyName("kind")]
-    public string Kind { get; init; } = string.Empty;
-
-    [JsonPropertyName("metadata")]
-    public ProjectMetadata Metadata { get; init; } = new();
-
-    [JsonPropertyName("spec")]
-    public ProjectSpec Spec { get; init; } = new();
-
-    [JsonPropertyName("status")]
-    public CliProjectStatus Status { get; init; } = new();
-}
-
-public record ProjectMetadata
-{
-    [JsonPropertyName("createdAt")]
-    public string CreatedAt { get; init; } = string.Empty;
-
-    [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
-
-    [JsonPropertyName("resourceVersion")]
-    public int ResourceVersion { get; init; }
-
-    [JsonPropertyName("uid")]
-    public string Uid { get; init; } = string.Empty;
-
-    [JsonPropertyName("updatedAt")]
-    public string UpdatedAt { get; init; } = string.Empty;
-}
-
-public record ProjectSpec
-{
-    [JsonPropertyName("defaultWorkflowStoreEnabled")]
-    public bool DefaultWorkflowStoreEnabled { get; init; }
-
-    [JsonPropertyName("disableAppTunnels")]
-    public bool DisableAppTunnels { get; init; }
-
-    [JsonPropertyName("displayName")]
-    public string DisplayName { get; init; } = string.Empty;
-
-    [JsonPropertyName("privateRegion")]
-    public bool PrivateRegion { get; init; }
-
-    [JsonPropertyName("region")]
-    public string Region { get; init; } = string.Empty;
-}
-
-public record CliProjectStatus
-{
-    [JsonPropertyName("endpoints")]
-    public ProjectEndpoints Endpoints { get; init; }
-
-    [JsonPropertyName("status")]
-    public string Status { get; init; } = string.Empty;
-
-    [JsonPropertyName("updatedAt")]
-    public string UpdatedAt { get; init; } = string.Empty;
-}
-
-public record ProjectEndpoints
-{
-    [JsonPropertyName("grpc")]
-    public required ProjectEndpointDetails Grpc { get; init; }
-
-    [JsonPropertyName("http")]
-    public required ProjectEndpointDetails Http { get; init; }
-}
-
-public record ProjectEndpointDetails
-{
-    [JsonPropertyName("port")]
-    public int Port { get; init; }
-
-    [JsonPropertyName("url")]
-    public Uri Uri { get; init; }
-}
-
-public record CreateProjectOptions
-{
-    public string? Region { get; init; }
-
-    public bool DeployManagedPubsub { get; init; } = false;
-
-    public bool DeployManagedKv { get; init; } = false;
-
-    public bool EnableManagedWorkflow { get; init; } = false;
-
-    public bool Wait { get; init; } = true;
-    public bool Use { get; init; }
-    public bool DisableAppTunnels { get; init; }
-}
-
-public record CreateAppOptions
-{
-    public string? Project { get; init; }
-    public string? AppEndpoint { get; init; }
-    public string? AppToken { get; init; }
-    public string? AppProtocol { get; init; }
-    public string? AppConfig { get; init; }
-    public bool EnableAppHealthCheck { get; init; }
-    public string? AppHealthCheckPath { get; init; }
-    public int? AppHealthProbeInterval { get; init; }
-    public int? AppHealthProbeTimeout { get; init; }
-    public int? AppHealthThreshold { get; init; }
-    public int? AppChannelTimeoutSeconds { get; init; }
-
-    public bool Wait { get; init; } = true;
-}
-
-public record CreateComponentOptions
-{
-    public required string Project { get; init; }
-    public bool Wait { get; init; } = true;
-}
-
-public record CreatePubSubOptions
-{
-    public required string Project { get; init; }
-    public IList<string> Scopes { get; init; } = [];
-    public bool Wait { get; init; } = true;
-}
-
-public record CreateKvStoreOptions
-{
-    public required string Project { get; init; }
-    public IList<string> Scopes { get; init; } = [];
-    public bool Wait { get; init; } = true;
-}
-
-public record CliAppDetails
-{
-    [JsonPropertyName("apiVersion")]
-    public string ApiVersion { get; init; } = string.Empty;
-
-    [JsonPropertyName("kind")]
-    public string Kind { get; init; } = string.Empty;
-
-    [JsonPropertyName("metadata")]
-    public AppIdentityMetadata Metadata { get; init; } = new();
-
-    [JsonPropertyName("spec")]
-    public AppIdentitySpec Spec { get; init; } = new();
-
-    [JsonPropertyName("status")]
-    public AppIdentityStatus Status { get; init; } = new();
-}
-
-public record AppIdentityMetadata
-{
-    [JsonPropertyName("createdAt")]
-    public string CreatedAt { get; init; } = string.Empty;
-
-    [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
-
-    [JsonPropertyName("resourceVersion")]
-    public int ResourceVersion { get; init; }
-
-    [JsonPropertyName("uid")]
-    public string Uid { get; init; } = string.Empty;
-
-    [JsonPropertyName("updatedAt")]
-    public string UpdatedAt { get; init; } = string.Empty;
-}
-
-public record AppIdentitySpec
-{
-    [JsonPropertyName("apiTokenRevision")]
-    public int ApiTokenRevision { get; init; }
-
-    [JsonPropertyName("healthCheck")]
-    public HealthCheck HealthCheck { get; init; } = new();
-
-    [JsonPropertyName("projectId")]
-    public string ProjectId { get; init; } = string.Empty;
-
-    [JsonPropertyName("protocol")]
-    public string Protocol { get; init; } = string.Empty;
-}
-
-public record HealthCheck
-{
-    [JsonPropertyName("path")]
-    public string Path { get; init; } = string.Empty;
-
-    [JsonPropertyName("probe")]
-    public HealthCheckProbe Probe { get; init; } = new();
-}
-
-public record HealthCheckProbe
-{
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; init; }
-
-    [JsonPropertyName("failureThreshold")]
-    public int FailureThreshold { get; init; }
-
-    [JsonPropertyName("intervalInSec")]
-    public int IntervalInSec { get; init; }
-
-    [JsonPropertyName("timeoutInMs")]
-    public int TimeoutInMs { get; init; }
-}
-
-public record AppIdentityStatus
-{
-    [JsonPropertyName("apiToken")]
-    public string ApiToken { get; init; } = string.Empty;
-
-    [JsonPropertyName("spiffeId")]
-    public string SpiffeId { get; init; } = string.Empty;
-
-    [JsonPropertyName("status")]
-    public string Status { get; init; } = string.Empty;
-
-    [JsonPropertyName("updatedAt")]
-    public string UpdatedAt { get; init; } = string.Empty;
 }

@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Diagrid.Aspire.Hosting.Catalyst.Cli;
+using Diagrid.Aspire.Hosting.Catalyst.Model;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Diagrid.Aspire.Hosting.Catalyst;
@@ -26,8 +28,8 @@ public static class ResourceBuilderExtensions
 
         catalystProject.WithAnnotation(new ResourceUrlAnnotation
         {
-            Url = "https://google.com",
-            DisplayText = "Project Dashboard",
+            Url = "https://catalyst.r1.diagrid.io/admin/organization",
+            DisplayText = "Catalyst Dashboard",
         });
 
         applicationBuilder.Eventing.Subscribe<BeforeStartEvent>(Events.EnsureCatalystProvisioning);

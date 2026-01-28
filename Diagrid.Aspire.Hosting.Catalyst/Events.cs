@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Diagrid.Aspire.Hosting.Catalyst;
 
@@ -12,10 +13,16 @@ internal static class Events
 
         var catalystProject = applicationModel.Resources.Single((resource) => resource is CatalystProject)
             as CatalystProject ?? throw new("Huh?");
+        var logger = beforeStartEvent.Services.GetRequiredService<ResourceLoggerService>()
+            .GetLogger(catalystProject);
+
         var projectName = catalystProject.ProjectName;
 
         // todo: This is going to run after the event completes so that it doesn't hang AppHost start.
         _ = Task.Run(async () => {
+
+            logger.LogInformation("Welcome to Catalyst!");
+            logger.LogInformation("Give us a moment while we get things ready for you...");
 
             using var runawayCancellationSource = new CancellationTokenSource();
 
@@ -28,8 +35,10 @@ internal static class Events
             {
                 await provisioner.Init(runawayCancellationSource.Token);
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message);
+
                 await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
                 {
                     State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
@@ -47,8 +56,10 @@ internal static class Events
             {
                 await provisioner.CreateProject(projectName, runawayCancellationSource.Token);
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message);
+
                 await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
                 {
                     State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
@@ -66,8 +77,10 @@ internal static class Events
             {
                 await provisioner.UseProject(projectName, runawayCancellationSource.Token);
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message);
+
                 await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
                 {
                     State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
@@ -88,8 +101,10 @@ internal static class Events
                 catalystProject.HttpEndpoint.SetResult(projectDetails.HttpEndpoint.ToString());
                 catalystProject.GrpcEndpoint.SetResult(projectDetails.GrpcEndpoint.ToString());
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(ex, ex.Message);
+
                 await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
                 {
                     State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
@@ -112,8 +127,10 @@ internal static class Events
 
                     pair.Value.SetResult(app);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, ex.Message);
+
                     await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
                     {
                         State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
@@ -134,8 +151,10 @@ internal static class Events
                 {
                     await provisioner.CreatePubSub(pair.Key, pair.Value, runawayCancellationSource.Token);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, ex.Message);
+
                     await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
                     {
                         State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
@@ -153,8 +172,10 @@ internal static class Events
 
                     await provisioner.CreateKvStore(pair.Key, pair.Value, runawayCancellationSource.Token);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, ex.Message);
+
                     await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
                     {
                         State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
@@ -175,8 +196,10 @@ internal static class Events
                 {
                     await provisioner.CreateComponent(pair.Value, projectName, runawayCancellationSource.Token);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, ex.Message);
+
                     await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
                     {
                         State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
@@ -190,6 +213,8 @@ internal static class Events
             {
                 State = new(KnownResourceStates.Finished, KnownResourceStateStyles.Success),
             });
+
+            logger.LogInformation("Catalyst has been successfully initialized!");
         });
 
         return Task.CompletedTask;

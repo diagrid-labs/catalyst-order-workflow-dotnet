@@ -1,3 +1,5 @@
+using Diagrid.Aspire.Hosting.Catalyst.Model;
+
 namespace Diagrid.Aspire.Hosting.Catalyst;
 
 /// <summary>
@@ -86,36 +88,4 @@ public interface CatalystProvisioner
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<bool> CheckKvStoreExists(string name, string projectName, CancellationToken cancellationToken);
-}
-
-public record ProjectDetails
-{
-    public required Uri HttpEndpoint { get; init; }
-
-    public required Uri GrpcEndpoint { get; init; }
-}
-
-public record AppDetails
-{
-    public required string ApiToken { get; init; }
-}
-
-public record PubSubDescriptor
-{
-    public required string Project { get; init; }
-    public IList<string> Scopes { get; init; } = [];
-}
-
-public record KvStoreDescriptor
-{
-    public required string Project { get; init; }
-    public IList<string> Scopes { get; init; } = [];
-}
-
-public record ComponentDescriptor
-{
-    public required string Name { get; init; }
-    public required string Type { get; init; }
-    public IList<string> Scopes { get; init; } = [];
-    public required IDictionary<string, object?> Metadata { get; init; } = new Dictionary<string, object?>();
 }

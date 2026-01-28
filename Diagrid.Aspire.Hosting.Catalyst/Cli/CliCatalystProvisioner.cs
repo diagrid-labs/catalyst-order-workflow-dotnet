@@ -1,4 +1,6 @@
-namespace Diagrid.Aspire.Hosting.Catalyst;
+using Diagrid.Aspire.Hosting.Catalyst.Model;
+
+namespace Diagrid.Aspire.Hosting.Catalyst.Cli;
 
 public class CliCatalystProvisioner : CatalystProvisioner
 {
