@@ -83,4 +83,9 @@ public class CliCatalystProvisioner : CatalystProvisioner
             Scopes = options.Scopes,
         }, cancellationToken);
     }
+
+    public async Task<bool> CheckKvStoreExists(string name, string projectName, CancellationToken cancellationToken)
+    {
+        return await Commands.CheckKvStoreExists(name, projectName, cancellationToken);
+    }
 }

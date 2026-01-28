@@ -100,7 +100,7 @@ internal static class Commands
             var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
             var error = await process.StandardError.ReadToEndAsync(cancellationToken);
 
-            if (process.ExitCode != 0)
+            if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
                 throw new InvalidOperationException($"Failed to create project: {error}");
             }
@@ -167,13 +167,13 @@ internal static class Commands
             var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
             var error = await process.StandardError.ReadToEndAsync(cancellationToken);
 
-            if (process.ExitCode == 0 && ! string.IsNullOrWhiteSpace(output))
+            if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                var projectDetails = JsonSerializer.Deserialize<CliProjectDetails>(output);
-                return projectDetails ?? throw new InvalidOperationException("Failed to deserialize project details");
+                throw new InvalidOperationException($"Failed to get project details: {error}");
             }
 
-            throw new InvalidOperationException($"Failed to get project details: {error}");
+            var projectDetails = JsonSerializer.Deserialize<CliProjectDetails>(output);
+            return projectDetails ?? throw new InvalidOperationException("Failed to deserialize project details");
         }
 
         throw new InvalidOperationException("Failed to start diagrid process");
@@ -207,13 +207,13 @@ internal static class Commands
             var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
             var error = await process.StandardError.ReadToEndAsync(cancellationToken);
 
-            if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
+            if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
-                var appIdentityDetails = JsonSerializer.Deserialize<CliAppDetails>(output);
-                return appIdentityDetails ?? throw new InvalidOperationException("Failed to deserialize app identity details");
+                throw new InvalidOperationException($"Failed to get app identity details: {error}");
             }
 
-            throw new InvalidOperationException($"Failed to get app identity details: {error}");
+            var appIdentityDetails = JsonSerializer.Deserialize<CliAppDetails>(output);
+            return appIdentityDetails ?? throw new InvalidOperationException("Failed to deserialize app identity details");
         }
 
         throw new InvalidOperationException("Failed to start diagrid process");
@@ -323,7 +323,7 @@ internal static class Commands
             var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
             var error = await process.StandardError.ReadToEndAsync(cancellationToken);
 
-            if (process.ExitCode != 0)
+            if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
                 throw new InvalidOperationException($"Failed to create app ID: {error}");
             }
@@ -412,7 +412,7 @@ internal static class Commands
             var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
             var error = await process.StandardError.ReadToEndAsync(cancellationToken);
 
-            if (process.ExitCode != 0)
+            if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
                 throw new InvalidOperationException($"Failed to create component: {error}");
             }
@@ -477,7 +477,7 @@ internal static class Commands
             var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
             var error = await process.StandardError.ReadToEndAsync(cancellationToken);
 
-            if (process.ExitCode != 0)
+            if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
                 throw new InvalidOperationException($"Failed to create pubsub: {error}");
             }
@@ -542,7 +542,7 @@ internal static class Commands
             var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
             var error = await process.StandardError.ReadToEndAsync(cancellationToken);
 
-            if (process.ExitCode != 0)
+            if (process.ExitCode != 0 && ! output.Contains("already exists"))
             {
                 throw new InvalidOperationException($"Failed to create kv store: {error}");
             }
@@ -551,6 +551,67 @@ internal static class Commands
         {
             throw new InvalidOperationException("Failed to start diagrid process");
         }
+    }
+
+    public static async Task<bool> CheckKvStoreExists(
+        string kvStoreName,
+        string projectName,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(kvStoreName))
+        {
+            throw new ArgumentException("KV Store name required", nameof(kvStoreName));
+        }
+
+        var arguments = new List<string>
+        {
+            "kv",
+            "list",
+            "--output",
+            "json",
+        };
+
+        arguments.Add("--project");
+        arguments.Add(projectName);
+
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = "diagrid",
+            Arguments = string.Join(" ", arguments),
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        using var process = Process.Start(processStartInfo);
+
+        if (process != null)
+        {
+            await process.WaitForExitAsync(cancellationToken);
+
+            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
+
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"Failed to list kv stores: {error}");
+            }
+
+            using var document = JsonDocument.Parse(output);
+            var root = document.RootElement;
+
+            return root.GetProperty("items")
+                .EnumerateArray()
+                .Any((kv) => kv
+                    .GetProperty("metadata")
+                    .GetProperty("name")
+                    .GetString() == kvStoreName
+            );
+        }
+
+        throw new InvalidOperationException("Failed to start diagrid process");
     }
 }
 

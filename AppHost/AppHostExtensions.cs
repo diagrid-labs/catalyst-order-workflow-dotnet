@@ -58,7 +58,7 @@ public static class AppHostExtensions
     {
         builder
             .AddCatalystProject("catalyst-order-workflow-local")
-            .AddCatalystKvStore("shop-activity")
+            .AddCatalystPubSub("shop-activity")
             .AddCatalystComponent("shop-activity", new DiagridPubSub
             {
                 Metadata = new()
@@ -66,6 +66,7 @@ public static class AppHostExtensions
                     PubSubName = "shop-activity",
                 },
             })
+            .AddCatalystKvStore("inventory-store")
             .AddCatalystComponent("inventory-store", new DiagridStateStore
             {
                 Metadata = new()

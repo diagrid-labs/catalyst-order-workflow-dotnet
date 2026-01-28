@@ -24,31 +24,79 @@ internal static class Events
                 State = new(KnownResourceStates.Starting, KnownResourceStateStyles.Info),
             });
 
-            await provisioner.Init(runawayCancellationSource.Token);
+            try
+            {
+                await provisioner.Init(runawayCancellationSource.Token);
+            }
+            catch
+            {
+                await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+                {
+                    State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
+                });
+
+                return;
+            }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
                 State = new("Ensuring project", KnownResourceStateStyles.Info),
             });
 
-            await provisioner.CreateProject(projectName, runawayCancellationSource.Token);
+            try
+            {
+                await provisioner.CreateProject(projectName, runawayCancellationSource.Token);
+            }
+            catch
+            {
+                await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+                {
+                    State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
+                });
+
+                return;
+            }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
                 State = new("Selecting project", KnownResourceStateStyles.Info),
             });
 
-            await provisioner.UseProject(projectName, runawayCancellationSource.Token);
+            try
+            {
+                await provisioner.UseProject(projectName, runawayCancellationSource.Token);
+            }
+            catch
+            {
+                await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+                {
+                    State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
+                });
+
+                return;
+            }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
                 State = new("Loading project details", KnownResourceStateStyles.Info),
             });
 
-            var projectDetails = await provisioner.GetProjectDetails(projectName, runawayCancellationSource.Token);
+            try
+            {
+                var projectDetails = await provisioner.GetProjectDetails(projectName, runawayCancellationSource.Token);
 
-            catalystProject.HttpEndpoint.SetResult(projectDetails.HttpEndpoint.ToString());
-            catalystProject.GrpcEndpoint.SetResult(projectDetails.GrpcEndpoint.ToString());
+                catalystProject.HttpEndpoint.SetResult(projectDetails.HttpEndpoint.ToString());
+                catalystProject.GrpcEndpoint.SetResult(projectDetails.GrpcEndpoint.ToString());
+            }
+            catch
+            {
+                await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+                {
+                    State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
+                });
+
+                return;
+            }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
             {
@@ -57,10 +105,22 @@ internal static class Events
 
             foreach (var pair in catalystProject.AppDetails)
             {
-                await provisioner.CreateApp(pair.Key.Name, runawayCancellationSource.Token);
-                var app = await provisioner.GetAppDetails(pair.Key.Name, runawayCancellationSource.Token);
+                try
+                {
+                    await provisioner.CreateApp(pair.Key.Name, runawayCancellationSource.Token);
+                    var app = await provisioner.GetAppDetails(pair.Key.Name, runawayCancellationSource.Token);
 
-                pair.Value.SetResult(app);
+                    pair.Value.SetResult(app);
+                }
+                catch
+                {
+                    await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+                    {
+                        State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
+                    });
+
+                    return;
+                }
             }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
@@ -70,21 +130,38 @@ internal static class Events
 
             foreach (var pair in catalystProject.PubSubs)
             {
-                await provisioner.CreatePubSub(pair.Key, new()
+                try
                 {
-                    Project = projectName,
-                    Scopes = pair.Value.Scopes,
-                }, runawayCancellationSource.Token);
-            }
+                    await provisioner.CreatePubSub(pair.Key, pair.Value, runawayCancellationSource.Token);
+                }
+                catch
+                {
+                    await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+                    {
+                        State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
+                    });
 
-            foreach (var pair in catalystProject.PubSubs)
-            {
-                await provisioner.CreatePubSub(pair.Key, pair.Value, runawayCancellationSource.Token);
+                    return;
+                }
             }
 
             foreach (var pair in catalystProject.KvStores)
             {
-                await provisioner.CreateKvStore(pair.Key, pair.Value, runawayCancellationSource.Token);
+                try
+                {
+                    if (await provisioner.CheckKvStoreExists(pair.Key, projectName, cancellationToken)) continue;
+
+                    await provisioner.CreateKvStore(pair.Key, pair.Value, runawayCancellationSource.Token);
+                }
+                catch
+                {
+                    await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+                    {
+                        State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
+                    });
+
+                    return;
+                }
             }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
@@ -94,7 +171,19 @@ internal static class Events
 
             foreach (var pair in catalystProject.Components)
             {
-                await provisioner.CreateComponent(pair.Value, projectName, runawayCancellationSource.Token);
+                try
+                {
+                    await provisioner.CreateComponent(pair.Value, projectName, runawayCancellationSource.Token);
+                }
+                catch
+                {
+                    await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with
+                    {
+                        State = new(KnownResourceStates.FailedToStart, KnownResourceStateStyles.Error),
+                    });
+
+                    return;
+                }
             }
 
             await notifications.PublishUpdateAsync(catalystProject, (previous) => previous with

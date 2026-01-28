@@ -77,6 +77,15 @@ public interface CatalystProvisioner
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task CreateKvStore(string name, KvStoreDescriptor options, CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Checks to see if a KV store exists.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="projectName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<bool> CheckKvStoreExists(string name, string projectName, CancellationToken cancellationToken);
 }
 
 public record ProjectDetails
