@@ -67,6 +67,8 @@ public static class ResourceBuilderExtensions
                         "--project", catalystProjectBuilder.Resource.ProjectName,
                         "--app-id", resourceBuilder.Resource.Name,
                         "--app-port", httpEndpoint.Property(EndpointProperty.Port),
+                        "--skip-managed-kv",
+                        "--skip-managed-pubsub",
                     ]
                 )
                 .WaitForCompletion(catalystProjectBuilder);
@@ -104,7 +106,7 @@ public static class ResourceBuilderExtensions
     /// <param name="type"></param>
     /// <param name="metadata"></param>
     /// <param name="scopes"></param>
-    public static void AddCatalystComponent(
+    public static void AddComponent(
         this IResourceBuilder<CatalystProject> catalystProject,
         string name,
         string type,
@@ -129,7 +131,7 @@ public static class ResourceBuilderExtensions
     /// <param name="component"></param>
     /// <typeparam name="MetadataType"></typeparam>
     /// <exception cref="Exception"></exception>
-    public static IResourceBuilder<CatalystProject> AddCatalystComponent<MetadataType>(
+    public static IResourceBuilder<CatalystProject> AddComponent<MetadataType>(
         this IResourceBuilder<CatalystProject> catalystProject,
         string name,
         CatalystComponent<MetadataType> component
