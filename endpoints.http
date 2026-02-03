@@ -1,0 +1,57 @@
+@dapr_port=6003
+@app-port=8081
+@inventory-port=8082
+@notification-port=8083
+@product-id=prod-002
+@customer-id=Alice
+# prod-001,prod-002,prod-003,prod-004,prod-005
+
+## ORDER WORKFLOW ENDPOINTS
+# Trigger a new order workflow
+# @name run_workflow
+POST http://localhost:{{app-port}}/order
+Content-Type: application/json
+
+{
+  "orderId": null,
+  "customerId": "{{customer-id}}",
+  "items": [
+    {
+      "productId": "{{product-id}}",
+      "quantity": 2,
+      "price": 29.99
+    }
+  ]
+}
+
+###
+@order_id = {{run_workflow.response.body.orderId}}
+### Get the status of the order workflow.
+GET http://localhost:{{dapr_port}}/v1.0/workflows/dapr/{{order_id}}
+
+## INVENTORY SERVICE ENDPOINTS
+### Get the inventory for a product
+GET http://localhost:{{inventory-port}}/inventory/{{product-id}}
+Content-Type: application/json
+
+### Restock the inventory for a product
+POST http://localhost:{{inventory-port}}/inventory/update
+Content-Type: application/json
+
+{
+  "orderId": "",
+  "items": [
+    {
+      "productId": "{{product-id}}",
+      "quantity": 2
+    }
+  ],
+  "operation": "restock"
+}
+
+## NOTIFICATION SERVICE ENDPOINTS
+# Navigate to: http://localhost:{{notification-port}}/
+
+### API Documentation (Scalar)
+# For each service, you can navigate to the Scalar API documentation by visiting the /scalar endpoint.
+# Eg. Notification Service: Navigate to: http://localhost:{{notification-port}}/scalar

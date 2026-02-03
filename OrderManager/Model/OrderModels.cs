@@ -15,14 +15,3 @@ public record OrderPayload
     public decimal TotalAmount { get; set; }
     public DateTime CreatedAt { get; set; }
 }
-
-public record SendPromotionRequest(string PromotionType, string Message, string TargetAudience);
-
-public record PromotionNotification
-{
-    public string PromotionId { get; set; } = string.Empty;
-    public string PromotionType { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-    public string TargetAudience { get; set; } = string.Empty;
-    public DateTime SentAt { get; set; }
-}

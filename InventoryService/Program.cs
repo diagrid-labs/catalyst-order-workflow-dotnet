@@ -33,6 +33,9 @@ builder.Services.AddDaprClient((daprBuilder) =>
 
 var app = builder.Build();
 
+Console.WriteLine("Starting Inventory Service...");
+Console.WriteLine("API available at http://localhost:8082");
+
 app.UseCloudEvents();
 
 app.UseRouting();
@@ -43,6 +46,7 @@ app.MapScalarApiReference();
 
 app.MapInventoryServiceEndpoints();
 
+Console.WriteLine("Initializing inventory with sample data...");
 var daprClient = app.Services.GetRequiredService<DaprClient>();
 
 foreach (var item in InventoryServiceEndpointExtensions.SampleInventory)
@@ -57,5 +61,8 @@ foreach (var item in InventoryServiceEndpointExtensions.SampleInventory)
 
     await daprClient.SaveStateAsync(ResourceNames.InventoryStore, inventoryKey, inventoryData);
 }
+
+Console.WriteLine($"Initialized {InventoryServiceEndpointExtensions.SampleInventory.Count} products");
+Console.WriteLine("Inventory Service ready!");
 
 await app.RunAsync();

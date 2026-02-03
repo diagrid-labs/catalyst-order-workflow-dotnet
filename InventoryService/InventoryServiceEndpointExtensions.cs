@@ -33,10 +33,6 @@ public static class InventoryServiceEndpointExtensions
         app
             .MapPost("order-notification", CreateOrder)
             .WithTopic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.OrderTopic);
-
-        app
-            .MapPost("promotion", CreatePromotion)
-            .WithTopic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.PromotionsTopic);
     }
 
     public static async Task<Results<Ok<InventorySearchResult>, NotFound>> SearchInventory(
@@ -44,6 +40,7 @@ public static class InventoryServiceEndpointExtensions
         [FromBody] InventorySearchRequest request
     )
     {
+        Console.WriteLine($"Searching inventory for {request.Items.Count} items");
         var currentInventoryItems = new List<ItemStatus>();
         foreach (var item in request.Items)
         {
@@ -55,6 +52,7 @@ public static class InventoryServiceEndpointExtensions
 
             var currentQuantity = inventoryData.Quantity;
             currentInventoryItems.Add(item with { Quantity = currentQuantity });
+            Console.WriteLine($"Product {item.ProductId}: {currentQuantity} units available");
         }
 
         return TypedResults.Ok(new InventorySearchResult
@@ -83,6 +81,7 @@ public static class InventoryServiceEndpointExtensions
 
     public static async Task<Ok> InitializeInventory([FromServices] DaprClient daprClient)
     {
+        Console.WriteLine($"Initializing inventory with {SampleInventory.Count} products");
         foreach (var item in SampleInventory)
         {
             var inventoryKey = $"inventory:{item.Key}";
@@ -94,6 +93,7 @@ public static class InventoryServiceEndpointExtensions
             };
 
             await daprClient.SaveStateAsync(ResourceNames.InventoryStore, inventoryKey, inventoryData);
+            Console.WriteLine($"Initialized {item.Key} with {item.Value} units");
         }
 
         return TypedResults.Ok();
@@ -104,6 +104,7 @@ public static class InventoryServiceEndpointExtensions
         [FromBody] UpdateInventoryRequest request
     )
     {
+        Console.WriteLine($"Updating inventory - Operation: {request.Operation}, Items: {request.Items.Count}");
         foreach (var item in request.Items)
         {
             var inventoryKey = $"inventory:{item.ProductId}";
@@ -127,6 +128,7 @@ public static class InventoryServiceEndpointExtensions
             };
 
             await daprClient.SaveStateAsync(ResourceNames.InventoryStore, inventoryKey, updatedInventory);
+            Console.WriteLine($"{item.ProductId}: {currentQuantity} → {newQuantity} units ({request.Operation})");
         }
 
         return TypedResults.Ok(new UpdateInventoryResult
@@ -136,55 +138,31 @@ public static class InventoryServiceEndpointExtensions
         });
     }
 
-    public static async Task<NoContent> CreatePromotion([FromBody] PromotionNotification notification)
-    {
-        await Task.CompletedTask;
-
-        switch (notification.PromotionType.ToLower())
-        {
-            case "flash-sale":
-                Console.WriteLine($"Flash sale promotion {notification.PromotionId} received for {notification.TargetAudience}: {notification.Message}");
-                break;
-
-            case "seasonal-discount":
-                Console.WriteLine($"Seasonal discount promotion {notification.PromotionId} received for {notification.TargetAudience}: {notification.Message}");
-                break;
-
-            case "loyalty-reward":
-                Console.WriteLine($"Loyalty reward promotion {notification.PromotionId} received for {notification.TargetAudience}: {notification.Message}");
-                break;
-
-            default:
-                throw new($"Unknown promotion type: {notification.PromotionType}");
-        }
-
-        return TypedResults.NoContent();
-    }
-
     public static async Task<NoContent> CreateOrder([FromBody] OrderStatusNotification notification)
     {
         await Task.CompletedTask;
+        Console.WriteLine($"Received order notification - Order ID: {notification.OrderId}, Status: {notification.Status}");
 
         switch (notification.Status.ToLower())
         {
             case "created":
-                Console.WriteLine($"{notification.OrderId} has been created and is being processed: {notification.Message}");
+                Console.WriteLine($"Order {notification.OrderId} created and being processed");
                 break;
 
             case "payment_processed":
-                Console.WriteLine($"Payment for order {notification.OrderId} has been successfully processed: {notification.Message}");
+                Console.WriteLine($"Payment processed for order {notification.OrderId}");
                 break;
 
             case "shipped":
-                Console.WriteLine($"Order {notification.OrderId} has been shipped and is on its way: {notification.Message}");
+                Console.WriteLine($"Order {notification.OrderId} shipped");
                 break;
 
             case "delivered":
-                Console.WriteLine($"Order {notification.OrderId} has been delivered successfully: {notification.Message}");
+                Console.WriteLine($"Order {notification.OrderId} delivered");
                 break;
 
             case "completed":
-                Console.WriteLine($"Order {notification.OrderId} has been completed and closed: {notification.Message}");
+                Console.WriteLine($"Order {notification.OrderId} completed");
                 break;
 
             default:

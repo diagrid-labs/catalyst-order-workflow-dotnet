@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -13,6 +15,8 @@ public class CheckInventoryActivity(DaprClient daprClient) : WorkflowActivity<Se
 {
     public override async Task<InventorySearchResult> RunAsync(WorkflowActivityContext context, SearchInventoryRequest request)
     {
+        Console.WriteLine($"Checking inventory for Order ID: {context.InstanceId}");
+        
         var httpClient = daprClient.CreateInvokableHttpClient(ResourceNames.InventoryService);
 
         var httpResponse = await httpClient.PostAsJsonAsync("/inventory/search", request);
@@ -21,6 +25,11 @@ public class CheckInventoryActivity(DaprClient daprClient) : WorkflowActivity<Se
 
         var response = await httpResponse.Content.ReadFromJsonAsync<InventorySearchResult>()
             ?? throw new("Failed to deserialize inventory search response.");
+
+        if (response.OutOfStockItems is { Count: >= 1 } outOfStockItems)
+        {
+            Console.WriteLine($"Items out of stock for Order ID: {context.InstanceId} - Items: {string.Join(", ", outOfStockItems.Select(item => item.ProductId))}");
+        }
 
         return response;
     }

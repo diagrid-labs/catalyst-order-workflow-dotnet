@@ -2,10 +2,6 @@ apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
   name: shop-activity
-scopes:
-  - order-manager
-  - inventory-service
-  - notification-service
 spec:
   type: pubsub.redis
   version: v1

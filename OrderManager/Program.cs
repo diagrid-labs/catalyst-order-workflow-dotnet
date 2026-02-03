@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using Dapr.Workflow;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.ServiceDefaults;
@@ -41,6 +42,10 @@ builder.Services.AddDaprWorkflow((options) =>
 
 var app = builder.Build();
 
+Console.WriteLine("Starting Order Manager Service...");
+Console.WriteLine("Workflow engine configured with 5 activities");
+Console.WriteLine("API available at http://localhost:8081");
+
 app.UseCloudEvents();
 
 app.MapHealthChecks("/healthz");
@@ -48,5 +53,7 @@ app.MapOpenApi();
 app.MapScalarApiReference();
 
 app.MapWorkerEndpoints();
+
+Console.WriteLine("Order Manager Service ready!");
 
 app.Run();

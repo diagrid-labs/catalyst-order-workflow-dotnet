@@ -4,17 +4,23 @@ common:
   daprdLogDestination: console
   resourcesPath: ./components
   enableAppHealthCheck: false
-  logLevel: debug
+  logLevel: info
 apps:
   - appID: order-manager
     appDirPath: ./OrderManager
     daprHTTPPort: 6003
     appPort: 8081
     appProtocol: http
-    command: [ "dotnet", "run", "--project", "OrderManager/OrderManager.csproj" ]
+    command: [ "dotnet", "run", "--project", "OrderManager.csproj" ]
   - appID: inventory-service
     appDirPath: ./InventoryService
     daprHTTPPort: 6002
     appPort: 8082
     appProtocol: http
-    command: [ "dotnet", "run", "--project", "InventoryService/InventoryService.csproj" ]
+    command: [ "dotnet", "run", "--project", "InventoryService.csproj" ]
+  - appID: notification-service
+    appDirPath: ./NotificationService
+    daprHTTPPort: 6004
+    appPort: 8083
+    appProtocol: http
+    command: [ "dotnet", "run", "--project", "NotificationService.csproj" ]

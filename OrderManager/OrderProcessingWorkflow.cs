@@ -94,7 +94,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             new NotificationRequest(orderId, "shipped", $"Order {orderId} has been shipped and is on its way")
         );
 
-        await context.CreateTimer(TimeSpan.FromSeconds(20));
+        Console.WriteLine($"Waiting 40 seconds for delivery simulation...");
+        await context.CreateTimer(TimeSpan.FromSeconds(40));
 
         await context.CallActivityAsync(
             nameof(SendNotificationActivity),
@@ -106,6 +107,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             new NotificationRequest(orderId, "completed", $"Order {orderId} processing completed successfully")
         );
 
-        return new(true, "Order processed successfully");
+        Console.WriteLine($"Order processing completed successfully for Order ID: {orderId}");
+
+        return new(true, $"Order {order.OrderId} processed successfully");
     }
 }
