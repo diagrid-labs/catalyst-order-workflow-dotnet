@@ -1,12 +1,8 @@
-using System;
 using System.Text.Json;
-using Dapr.Workflow;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.ServiceDefaults;
-using Diagrid.Labs.Catalyst.OrderWorkflow.OrderManager;
-using Diagrid.Labs.Catalyst.OrderWorkflow.OrderManager.Activity;
-using Microsoft.AspNetCore.Builder;
+using Diagrid.Labs.Catalyst.OrderWorkflow.NotificationService;
+using Diagrid.Labs.Catalyst.OrderWorkflow.NotificationService.Hubs;
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.Extensions.DependencyInjection;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,27 +26,41 @@ builder.Services.AddDaprClient((daprBuilder) =>
     });
 });
 
-builder.Services.AddDaprWorkflow((options) =>
+// Add SignalR for real-time notifications
+builder.Services.AddSignalR();
+
+// Add CORS for web UI
+builder.Services.AddCors(options =>
 {
-    options.RegisterWorkflow<OrderProcessingWorkflow>();
-    options.RegisterActivity<ValidateOrderActivity>();
-    options.RegisterActivity<ProcessPaymentActivity>();
-    options.RegisterActivity<CheckInventoryActivity>();
-    options.RegisterActivity<UpdateInventoryActivity>();
-    options.RegisterActivity<SendNotificationActivity>();
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 var app = builder.Build();
 
 app.UseCloudEvents();
 
+app.UseCors("AllowAll");
+app.UseRouting();
+app.MapSubscribeHandler();
 app.MapHealthChecks("/healthz");
 app.MapOpenApi();
 app.MapScalarApiReference();
 
-app.MapWorkerEndpoints();
+// Map SignalR hub
+app.MapHub<NotificationHub>("/notificationHub");
 
-Console.WriteLine("Workflow engine configured with 5 activities");
-Console.WriteLine("Order Manager Service ready!");
+// Serve static files for the UI
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+// Map notification endpoints
+app.MapNotificationServiceEndpoints();
+
+Console.WriteLine("Notification service started...");
 
 app.Run();

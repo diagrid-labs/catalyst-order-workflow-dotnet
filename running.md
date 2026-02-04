@@ -1,24 +1,18 @@
+## Prerequisites
+
+- A compatible [Docker](https://www.docker.com/products/docker-desktop) or [Podman](https://podman.io) installation
+- [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli) and Dapr initialized locally
+- [.NET SDK](https://dotnet.microsoft.com/en-us)
+
 ## Run with Aspire
 
 ![Running](/images/running.webp)
 
-This solution runs via a dotnet Aspire AppHost.  Aspire takes care of launching your application and any of its
-dependencies under a single run profile.
+This solution runs via a dotnet Aspire AppHost.  Aspire takes care of launching your application and any of its dependencies under a single run profile.
 
-Running Aspire projects is familiar and can be done via CLI or within your favourite IDE.
-
-The AppHost project is configured with two run profiles in `launchSettings.json`.
-
-- **Local** - `http-local` - Run everything on your workstation, using local Dapr instances for all Dapr functionality.
-- **Catalyst** - `http-local-catalyst` - Run the services locally on your workstation, connecting to Catalyst for all Dapr functionality.
-
-### Prerequisites
-
-- A compatible [Docker](https://www.docker.com/products/docker-desktop) or [Podman](https://podman.io) installation
-- [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli)
-- [.NET SDK](https://dotnet.microsoft.com/en-us)
-
-## Running
+Running Aspire projects is familiar and can be done via CLI or within your favourite IDE. The AppHost project is configured with two run profiles in `launchSettings.json`.
+  - **Local** - `http-local` - Run everything on your workstation, using local Dapr instances for all Dapr functionality.
+  - **Catalyst** - `http-local-catalyst` - Run the services locally on your workstation, connecting to Catalyst for all Dapr functionality.
 
 1. Install the three prerequisites above
 2. Run `dapr init` to initialize Dapr locally
@@ -71,24 +65,50 @@ dotnet run --profile http-local-catalyst
 
 You can also run the services locally using the Dapr CLI.
 
+1. Run the inventory service
 
-### Starting the Services
-
-```
-dapr run --app-id inventory-service --app-port 8082 --dapr-http-port 6002 --resources-path ./components -- dotnet run --project InventoryService/InventoryService.csproj
-```
-
-Run the order manager workflow with the following command:
-```
-dapr run --app-id order-manager --app-port 8081 --dapr-http-port 6003 --resources-path ./components -- dotnet run --project OrderManager/OrderManager.csproj
+```bash
+dapr run --app-id inventory-service --app-port 8081 --dapr-http-port 6002 --resources-path ../components -- dotnet run --project InventoryService.csproj
 ```
 
-### Publishing Events
+2. Run the order manager workflow:
 
-Our sample application also features an endpoint for promotion events.
-
-We can use the Dapr CLI to publish events and then see them being handled by the inventory service.
-
+```bash
+dapr run --app-id order-manager --app-port 8080 --dapr-http-port 6003 --resources-path ../components -- dotnet run --project OrderManager.csproj
 ```
-dapr publish --publish-app-id order-manager --pubsub shop-activity --topic promotions --data '{ "promotionId": "2112", "promotionType": "flash-sale", "message": "Don'\''t tell anyone, but we'\''re having a sale.", "targetAudience": "Couches that turn into bed enthusiasts." }'
+
+3. Run the notification service with web UI:
+
+```bash
+dapr run --app-id notification-service --app-port 8083 --dapr-http-port 6004 --resources-path ../components -- dotnet run --project NotificationService.csproj
+```
+
+4. Open the Notification Dashboard in your browser at `http://localhost:8083` to see real-time notifications
+
+5. Start a new order workflow using the VSCode Extension REST Client Extension using the [endpoints.http](./endpoints.http) file or curl commands
+
+---
+
+## Run with the Diagrid CLI and Catalyst
+
+1. Login to your Diagrid Catalyst account. Ensure you are logged into the correct organization and project.
+
+```bash
+diagrid login
+```
+
+2. Use the Diagrid CLI to launch the project on Catalyst
+
+```bash
+diagrid dev run --file dapr.yaml --project order-manager-workflow
+```
+
+3. Import the [subscription.yaml](components/catalyst/subscription.yaml) file into Catalyst subscriptions: https://catalyst.r1.diagrid.io/subscriptions.
+
+4. Navigate to the Catalyst UI and kick off an order in the UI [http://localhost:8083/](http://localhost:8083/) to see the workflow running.
+
+5. Run the following to stop the dev tunnels:
+
+```bash
+diagrid dev stop -f dapr.yaml
 ```

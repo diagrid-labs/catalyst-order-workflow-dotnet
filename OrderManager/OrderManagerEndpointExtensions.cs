@@ -18,8 +18,6 @@ public static class OrderManagerEndpointExtensions
 {
     public static void MapWorkerEndpoints(this WebApplication app)
     {
-        app.MapPost("promotion", SendPromotion);
-
         app.MapPost("inventory/search", SearchInventory);
         app.MapGet("inventory/{productId}", ShowProduct);
 
@@ -33,6 +31,7 @@ public static class OrderManagerEndpointExtensions
     )
     {
         var orderId = request.OrderId ?? Guid.CreateVersion7().ToString();
+        Console.WriteLine($"Received new order request - Customer: {request.CustomerId}, Items: {request.Items.Count}");
 
         var orderPayload = new OrderPayload
         {
@@ -44,34 +43,13 @@ public static class OrderManagerEndpointExtensions
         };
 
         await workflowClient.ScheduleNewWorkflowAsync(name: nameof(OrderProcessingWorkflow), input: orderPayload, instanceId: orderId);
+        Console.WriteLine($"Started workflow for Order ID: {orderId}, Total: ${orderPayload.TotalAmount}");
 
         return TypedResults.Ok(new CreateOrderResult
         {
             OrderId = orderId,
             Message = "Order processing started",
             WorkflowInstanceId = orderId,
-        });
-    }
-
-    public static async Task<Ok<SendPromotionResult>> SendPromotion(
-        [FromServices] DaprClient daprClient,
-        [FromBody] SendPromotionRequest request
-    )
-    {
-        var promotion = new PromotionNotification
-        {
-            PromotionId = Guid.NewGuid().ToString(),
-            PromotionType = request.PromotionType,
-            Message = request.Message,
-            TargetAudience = request.TargetAudience,
-            SentAt = DateTime.UtcNow,
-        };
-
-        await daprClient.PublishEventAsync(ShopActivityPubSub.PubSubName, ShopActivityPubSub.PromotionsTopic, promotion);
-
-        return TypedResults.Ok(new SendPromotionResult
-        {
-            Id = promotion.PromotionId,
         });
     }
 

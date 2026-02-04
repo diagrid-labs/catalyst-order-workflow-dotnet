@@ -2,24 +2,31 @@
 
 ![Architecture Diagram](/images/architecture.png)
 
-This demo application showcases workflows and local development using Dapr and the Diagrid Dashboard using a fictional
-e-commerce scenario.  The scenario consists of two microservices:
+This demo application showcases workflows and local development using Dapr and the Diagrid Dashboard using an e-commerce scenario.  The scenario consists of three microservices:
 
-- **Order Management Service** (`order-management`) - A controller app that orchestrates order processing
+- **Order Management Service** (`order-manager`) - A controller app that orchestrates order processing
 - **Inventory Service** (`inventory-service`) - A worker app that manages inventory and processes notifications
+- **Notification Service** (`notification-service`) - A web app with a UI dashboard that displays real-time order notifications
 
 Under its default configuration, the applications in this solution do not depend on any external services.
 
-The project features three main Dapr building blocks:
+The project features three Dapr building block APIs:
 
- - [Workflows](https://docs.dapr.io/developing-applications/building-blocks/workflow/workflow-overview)
+ - [Workflow](https://docs.dapr.io/developing-applications/building-blocks/workflow/workflow-overview)
  - [Pub/Sub](https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-overview)
  - [Service Invocation](https://docs.dapr.io/developing-applications/building-blocks/service-invocation/service-invocation-overview)
 
-### Technologies Used
+## Run locally 
+
+This project uses .NET Aspire to provide an easy local development experience. Use the [running documentation](./running.md) for a step-by-step guide.
+
+## Deploy to Kubernetes
+
+> WIP
+
+## Technologies Used
 
 - [Dapr](https://dapr.io/)
-- [Diagrid Dashboard](https://diagrid.io)
 - [Diagrid Catalyst](https://www.diagrid.io/catalyst)
 - [ASP.NET](https://dotnet.microsoft.com/apps/aspnet)
     - [Aspire](https://learn.microsoft.com/dotnet/aspire/get-started/aspire-overview)
@@ -30,8 +37,7 @@ The project features three main Dapr building blocks:
     - [Toplevel Statements](https://learn.microsoft.com/dotnet/csharp/fundamentals/program-structure/top-level-statements)
 - [Scalar API browser](https://scalar.com)
 
-Workflow visibility is provided by the Diagrid Dashboard, a utility container created to enhance the Dapr developer
-experience.
+Workflow visibility is provided by the [Diagrid Dashboard](https://docs.diagrid.io/develop/diagrid-dashboard), a utility container created to enhance the local Dapr developer experience.
 
 ![Diagrid Dashboard](/images/diagrid-dashboard-workflow.png)
 
@@ -40,17 +46,17 @@ Manager service address.
 
 ![Scalar](/images/scalar.png)
 
-## Running
+## Notification UI
 
-This project uses .NET Aspire to provide an easy local development experience.
+The Notification Service provides a real-time web dashboard for viewing order notifications. Access it at `http://localhost:8083` when running the application.
 
-Take a look at the [running documentation](/images/running.md) for a complete guide.
+Features:
+- **Real-time Updates**: Notifications appear instantly using SignalR
+- **Statistics Dashboard**: View counts of total notifications and orders
+- **Notification History**: See all past notifications with metadata
+- **Create Orders**: Submit new orders through the UI form
 
-## Deploying
-
-> WIP
-
-## Business Flow
+## Workflow flow diagram
 
 ![Workflow](/images/workflow.png)
 
@@ -74,9 +80,8 @@ The services in this project use [a set of well-known environment variables for 
 - `POST /order` - Start an order processing workflow
 - `GET /order/{orderId}` - Get the status of a workflow by ID
 
-To try using the Pub/Sub and Service Invocation APIs directly vs. through a workflow:
+To try using the Service Invocation API directly vs. through a workflow:
 
-- `POST /promotion` - Send a promotional notification (simple pub/sub example)
 - `POST /inventory/search` - Check inventory for multiple items via service invocation
 - `GET /inventory/{productId}` - Show current inventory for a single product via service invocation
 
@@ -87,7 +92,16 @@ To try using the Pub/Sub and Service Invocation APIs directly vs. through a work
 - `POST /inventory/initialize` - Initialize state store inventory with sample data
 - `POST /inventory/update` - Update inventory levels in state store
 - `POST /order-notification` - Pubsub subscription handler for order notifications
-- `POST /promotion` - Pubsub subscription handler for promotion notifications
+
+### Notification Service Endpoints
+
+- `GET /` - Web UI dashboard displaying real-time notifications
+- `POST /order-notification` - Pubsub subscription handler for order notifications (displays in UI)
+- `POST /order` - Create a new order (via Dapr service invocation to OrderManager)
+- `GET /notifications/history` - Get historical notifications
+- `/notificationHub` - SignalR hub for real-time notification updates
+
+The Notification Service provides a modern web interface at `http://localhost:8083` where you can view all order notifications in real-time.
 
 When running targeting a local Dapr, these environment variables are automatically set by the Aspire Dapr integration. When
 running targeting Catalyst, they are set based on values from Catalyst that you will provide.
@@ -121,18 +135,6 @@ curl -X POST http://localhost:8080/orders/process \
 
 ```bash
 curl http://localhost:8080/orders/{orderId}/status
-```
-
-#### Send Promotion (Pub/Sub)
-
-```bash
-curl -X POST http://localhost:8080/promotions/send \
-  -H "Content-Type: application/json" \
-  -d '{
-    "promotionType": "flash_sale",
-    "message": "50% off all items for the next 2 hours!",
-    "targetAudience": "all_customers"
-  }'
 ```
 
 #### Check Inventory (Service Invocation)

@@ -10,7 +10,7 @@ public static class AppHostExtensions
 {
     public static readonly string ExecutingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? throw new("Where am I?");
 
-    public static void ConfigureForLocal(this IDistributedApplicationBuilder builder, IResourceBuilder<ProjectResource> orderManager, IResourceBuilder<ProjectResource> inventoryService)
+    public static void ConfigureForLocal(this IDistributedApplicationBuilder builder, IResourceBuilder<ProjectResource> orderManager, IResourceBuilder<ProjectResource> inventoryService, IResourceBuilder<ProjectResource> notificationService)
     {
         // Configure a cache to hold our state and workflows.
         var cachePassword = builder.AddParameter("cache-password", "zxczxc123", secret: true);
@@ -22,6 +22,7 @@ public static class AppHostExtensions
 
         orderManager.WaitFor(cache);
         inventoryService.WaitFor(cache);
+        notificationService.WaitFor(cache);
 
         orderManager.WithDaprSidecar(new DaprSidecarOptions
         {
@@ -41,6 +42,15 @@ public static class AppHostExtensions
             ],
         });
 
+        notificationService.WithDaprSidecar(new DaprSidecarOptions
+        {
+            LogLevel = "debug",
+            ResourcesPaths =
+            [
+                Path.Join(ExecutingPath, "Resources"),
+            ],
+        });
+
         builder
             .AddContainer("diagrid-dashboard", "ghcr.io/diagridio/diagrid-dashboard:latest")
             .WithContainerName("catalyst-order-workflow-diagrid-dashboard")
@@ -52,7 +62,7 @@ public static class AppHostExtensions
         ;
     }
 
-    public static void ConfigureForCatalyst(this IDistributedApplicationBuilder builder, IResourceBuilder<ProjectResource> orderManager, IResourceBuilder<ProjectResource> inventoryService)
+    public static void ConfigureForCatalyst(this IDistributedApplicationBuilder builder, IResourceBuilder<ProjectResource> orderManager, IResourceBuilder<ProjectResource> inventoryService, IResourceBuilder<ProjectResource> notificationService)
     {
         // note: To configure this project to use Catalyst, run the following commands at the root of the AppHost project:
         //
@@ -103,7 +113,7 @@ public static class AppHostExtensions
 
         inventoryService
             .WithEnvironment("APP_ID", "inventory-service")
-            .WithEnvironment("APP_PORT", "8082")
+            .WithEnvironment("APP_PORT", "8081")
             .WithEnvironment("DAPR_API_TOKEN", inventoryServiceCatalystApiTokenParameter)
             .WithEnvironment("DAPR_GRPC_ENDPOINT", inventoryServiceCatalystGrpcEndpointParameter)
             .WithEnvironment("DAPR_HTTP_ENDPOINT", inventoryServiceCatalystHttpEndpointParameter)
@@ -117,10 +127,17 @@ public static class AppHostExtensions
                     "dev", "run", "--approve",
                     "--project", "catalyst-order-workflow-local",
                     "--app-id", "inventory-service",
-                    "--app-port", "8082",
+                    "--app-port", "8081",
                 ])
             .WaitFor(inventoryService)
             .WithParentRelationship(inventoryService)
+        ;
+
+        // Configure notification service for Catalyst
+        // Note: Add your notification service Catalyst credentials to user-secrets if needed
+        notificationService
+            .WithEnvironment("APP_ID", "notification-service")
+            .WithEnvironment("APP_PORT", "8083")
         ;
     }
 }

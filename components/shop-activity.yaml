@@ -5,6 +5,7 @@ metadata:
 scopes:
   - order-manager
   - inventory-service
+  - notification-service
 spec:
   type: pubsub.redis
   version: v1

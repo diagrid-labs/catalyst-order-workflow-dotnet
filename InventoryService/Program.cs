@@ -58,4 +58,7 @@ foreach (var item in InventoryServiceEndpointExtensions.SampleInventory)
     await daprClient.SaveStateAsync(ResourceNames.InventoryStore, inventoryKey, inventoryData);
 }
 
+Console.WriteLine($"Initialized {InventoryServiceEndpointExtensions.SampleInventory.Count} products");
+Console.WriteLine("Inventory Service started...");
+
 await app.RunAsync();

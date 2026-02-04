@@ -11,6 +11,8 @@ public class SendNotificationActivity(DaprClient daprClient) : WorkflowActivity<
 {
     public override async Task<bool> RunAsync(WorkflowActivityContext context, NotificationRequest request)
     {
+        Console.WriteLine($"Sent '{request.Status}' notification for Order ID: {request.OrderId}");
+        
         var orderNotification = new OrderStatusNotification
         {
             OrderId = request.OrderId,
