@@ -24,7 +24,7 @@ internal static class Events
 
             logger.LogInformation("\n" + LogoPicker.PickRandomLogo() + "\n");
             logger.LogInformation("Welcome to the Catalyst Aspire integration!");
-            logger.LogInformation("Give us a moment while we get things ready for you...");
+            logger.LogInformation("Hang on as your environment is provisioned...");
 
             using var runawayCancellationSource = new CancellationTokenSource();
 

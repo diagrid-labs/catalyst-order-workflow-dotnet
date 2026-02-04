@@ -10,30 +10,16 @@ internal static class Commands
 {
     public static async Task UseCatalyst(CancellationToken cancellationToken)
     {
-        var processStartInfo = new ProcessStartInfo
+        var arguments = new List<string>
         {
-            FileName = "diagrid",
-            Arguments = string.Join(" ",
-            [
-                "product",
-                "use",
-                "catalyst",
-            ]),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
+            "product",
+            "use",
+            "catalyst",
         };
 
-        using var process = Process.Start(processStartInfo);
+        var processStartInfo = CreateProcessStartInfo(arguments);
 
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-        }
+        await ExecuteProcessAsync(processStartInfo, cancellationToken);
     }
 
     public static async Task CreateProject(
@@ -51,11 +37,7 @@ internal static class Commands
 
         options ??= new();
 
-        if (!string.IsNullOrWhiteSpace(options.Region))
-        {
-            arguments.Add("--region");
-            arguments.Add(options.Region);
-        }
+        AddOptionalArgument(arguments, "--region", options.Region);
 
         var deployManagedPubsub = options.DeployManagedPubsub ? "true" : "false";
         arguments.AddRange([$"--deploy-managed-pubsub={deployManagedPubsub}"]);
@@ -63,162 +45,73 @@ internal static class Commands
         var deployManagedKv = options.DeployManagedKv ? "true" : "false";
         arguments.AddRange([$"--deploy-managed-kv={deployManagedKv}"]);
 
-        if (options.EnableManagedWorkflow)
-        {
-            arguments.Add("--enable-managed-workflow");
-        }
+        AddFlagArgument(arguments, "--enable-managed-workflow", options.EnableManagedWorkflow);
+        AddFlagArgument(arguments, "--wait", options.Wait);
+        AddFlagArgument(arguments, "--use", options.Use);
+        AddFlagArgument(arguments, "--disable-app-tunnels", options.DisableAppTunnels);
 
-        if (options.Wait)
-        {
-            arguments.Add("--wait");
-        }
+        var processStartInfo = CreateProcessStartInfo(arguments);
 
-        if (options.Use)
-        {
-            arguments.Add("--use");
-        }
+        var (output, _, exitCode) = await ExecuteProcessAsync(processStartInfo, cancellationToken);
 
-        if (options.DisableAppTunnels)
-        {
-            arguments.Add("--disable-app-tunnels");
-        }
-
-        var processStartInfo = new ProcessStartInfo
-        {
-            FileName = "diagrid",
-            Arguments = string.Join(" ", arguments),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-
-        using var process = Process.Start(processStartInfo);
-
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-
-            if (process.ExitCode != 0 && ! output.Contains("already exists"))
-            {
-                throw new InvalidOperationException(output);
-            }
-        }
-        else
-        {
-            throw new InvalidOperationException("Failed to start diagrid process");
-        }
+        CheckExitCode(exitCode, output);
     }
 
     public static async Task UseProject(string projectName, CancellationToken cancellationToken)
     {
-        var processStartInfo = new ProcessStartInfo
+        var arguments = new List<string>
         {
-            FileName = "diagrid",
-            Arguments = string.Join(" ",
-            [
-                "project",
-                "use",
-                projectName,
-            ]),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
+            "project",
+            "use",
+            projectName,
         };
 
-        using var process = Process.Start(processStartInfo);
+        var processStartInfo = CreateProcessStartInfo(arguments);
 
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-        }
+        await ExecuteProcessAsync(processStartInfo, cancellationToken);
     }
 
-    public static async Task<CliProjectDetails> GetProjectDetails(string projectName, CancellationToken cancellationToken)
+    public static async Task<CliProjectDetails> GetProjectDetails(string projectName,
+        CancellationToken cancellationToken)
     {
-        var processStartInfo = new ProcessStartInfo
+        var arguments = new List<string>
         {
-            FileName = "diagrid",
-            Arguments = string.Join(" ",
-            [
-                "project",
-                "get",
-                projectName,
-                "--output",
-                "json",
-            ]),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
+            "project",
+            "get",
+            projectName,
+            "--output",
+            "json",
         };
 
-        using var process = Process.Start(processStartInfo);
+        var processStartInfo = CreateProcessStartInfo(arguments);
+        var (output, _, exitCode) = await ExecuteProcessAsync(processStartInfo, cancellationToken);
 
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
+        CheckExitCode(exitCode, output);
 
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
+        var projectDetails = JsonSerializer.Deserialize<CliProjectDetails>(output);
 
-            if (process.ExitCode != 0 && ! output.Contains("already exists"))
-            {
-                throw new InvalidOperationException(output);
-            }
-
-            var projectDetails = JsonSerializer.Deserialize<CliProjectDetails>(output);
-            return projectDetails ?? throw new InvalidOperationException("Failed to deserialize project details");
-        }
-
-        throw new InvalidOperationException("Failed to start diagrid process");
+        return projectDetails ?? throw new InvalidOperationException("Failed to deserialize project details");
     }
 
     public static async Task<CliAppDetails> GetAppDetails(string appId, CancellationToken cancellationToken)
     {
-        var processStartInfo = new ProcessStartInfo
+        var arguments = new List<string>
         {
-            FileName = "diagrid",
-            Arguments = string.Join(" ",
-            [
-                "appid",
-                "get",
-                appId,
-                "--output",
-                "json",
-            ]),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
+            "appid",
+            "get",
+            appId,
+            "--output",
+            "json",
         };
 
-        using var process = Process.Start(processStartInfo);
+        var processStartInfo = CreateProcessStartInfo(arguments);
+        var (output, error, exitCode) = await ExecuteProcessAsync(processStartInfo, cancellationToken);
 
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
+        CheckExitCode(exitCode, output);
 
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
+        var appIdentityDetails = JsonSerializer.Deserialize<CliAppDetails>(output);
 
-            if (process.ExitCode != 0 && ! output.Contains("already exists"))
-            {
-                throw new InvalidOperationException(output);
-            }
-
-            var appIdentityDetails = JsonSerializer.Deserialize<CliAppDetails>(output);
-            return appIdentityDetails ?? throw new InvalidOperationException("Failed to deserialize app identity details");
-        }
-
-        throw new InvalidOperationException("Failed to start diagrid process");
+        return appIdentityDetails ?? throw new InvalidOperationException("Failed to deserialize app identity details");
     }
 
     public static async Task CreateApp(
@@ -236,104 +129,24 @@ internal static class Commands
 
         options ??= new();
 
-        if (!string.IsNullOrWhiteSpace(options.Project))
-        {
-            arguments.Add("--project");
-            arguments.Add(options.Project);
-        }
+        AddOptionalArgument(arguments, "--project", options.Project);
+        AddOptionalArgument(arguments, "--app-endpoint", options.AppEndpoint);
+        AddOptionalArgument(arguments, "--app-token", options.AppToken);
+        AddOptionalArgument(arguments, "--app-protocol", options.AppProtocol);
+        AddOptionalArgument(arguments, "--app-config", options.AppConfig);
+        AddFlagArgument(arguments, "--enable-app-health-check", options.EnableAppHealthCheck);
+        AddOptionalArgument(arguments, "--app-health-check-path", options.AppHealthCheckPath);
+        AddOptionalIntArgument(arguments, "--app-health-probe-interval", options.AppHealthProbeInterval);
+        AddOptionalIntArgument(arguments, "--app-health-probe-timeout", options.AppHealthProbeTimeout);
+        AddOptionalIntArgument(arguments, "--app-health-threshold", options.AppHealthThreshold);
+        AddOptionalIntArgument(arguments, "--app-channel-timeout-seconds", options.AppChannelTimeoutSeconds);
+        AddFlagArgument(arguments, "--wait", options.Wait);
 
-        if (!string.IsNullOrWhiteSpace(options.AppEndpoint))
-        {
-            arguments.Add("--app-endpoint");
-            arguments.Add(options.AppEndpoint);
-        }
+        var processStartInfo = CreateProcessStartInfo(arguments);
 
-        if (!string.IsNullOrWhiteSpace(options.AppToken))
-        {
-            arguments.Add("--app-token");
-            arguments.Add(options.AppToken);
-        }
+        var (output, _, exitCode) = await ExecuteProcessAsync(processStartInfo, cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(options.AppProtocol))
-        {
-            arguments.Add("--app-protocol");
-            arguments.Add(options.AppProtocol);
-        }
-
-        if (!string.IsNullOrWhiteSpace(options.AppConfig))
-        {
-            arguments.Add("--app-config");
-            arguments.Add(options.AppConfig);
-        }
-
-        if (options.EnableAppHealthCheck)
-        {
-            arguments.Add("--enable-app-health-check");
-        }
-
-        if (!string.IsNullOrWhiteSpace(options.AppHealthCheckPath))
-        {
-            arguments.Add("--app-health-check-path");
-            arguments.Add(options.AppHealthCheckPath);
-        }
-
-        if (options.AppHealthProbeInterval.HasValue)
-        {
-            arguments.Add("--app-health-probe-interval");
-            arguments.Add(options.AppHealthProbeInterval.Value.ToString());
-        }
-
-        if (options.AppHealthProbeTimeout.HasValue)
-        {
-            arguments.Add("--app-health-probe-timeout");
-            arguments.Add(options.AppHealthProbeTimeout.Value.ToString());
-        }
-
-        if (options.AppHealthThreshold.HasValue)
-        {
-            arguments.Add("--app-health-threshold");
-            arguments.Add(options.AppHealthThreshold.Value.ToString());
-        }
-
-        if (options.AppChannelTimeoutSeconds.HasValue)
-        {
-            arguments.Add("--app-channel-timeout-seconds");
-            arguments.Add(options.AppChannelTimeoutSeconds.Value.ToString());
-        }
-
-        if (options.Wait)
-        {
-            arguments.Add("--wait");
-        }
-
-        var processStartInfo = new ProcessStartInfo
-        {
-            FileName = "diagrid",
-            Arguments = string.Join(" ", arguments),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-
-        using var process = Process.Start(processStartInfo);
-
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-
-            if (process.ExitCode != 0 && ! output.Contains("already exists"))
-            {
-                throw new InvalidOperationException(output);
-            }
-        }
-        else
-        {
-            throw new InvalidOperationException("Failed to start diagrid process");
-        }
+        CheckExitCode(exitCode, output);
     }
 
     public static async Task CreateComponent(
@@ -378,51 +191,15 @@ internal static class Commands
             throw new ArgumentException("Component metadata required", nameof(descriptor));
         }
 
-        if (descriptor.Scopes.Count > 0)
-        {
-            arguments.Add("--scopes");
-            arguments.Add(string.Join(",", descriptor.Scopes));
-        }
+        AddScopesArgument(arguments, descriptor.Scopes);
+        AddOptionalArgument(arguments, "--project", options.Project);
+        AddFlagArgument(arguments, "--wait", options.Wait);
 
-        if (!string.IsNullOrWhiteSpace(options.Project))
-        {
-            arguments.Add("--project");
-            arguments.Add(options.Project);
-        }
+        var processStartInfo = CreateProcessStartInfo(arguments);
 
-        if (options.Wait)
-        {
-            arguments.Add("--wait");
-        }
+        var (output, _, exitCode) = await ExecuteProcessAsync(processStartInfo, cancellationToken);
 
-        var processStartInfo = new ProcessStartInfo
-        {
-            FileName = "diagrid",
-            Arguments = string.Join(" ", arguments),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-
-        using var process = Process.Start(processStartInfo);
-
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-
-            if (process.ExitCode != 0 && ! output.Contains("already exists"))
-            {
-                throw new InvalidOperationException(output);
-            }
-        }
-        else
-        {
-            throw new InvalidOperationException("Failed to start diagrid process");
-        }
+        CheckExitCode(exitCode, output);
     }
 
     public static async Task CreatePubSub(
@@ -443,51 +220,15 @@ internal static class Commands
             pubsubName,
         };
 
-        if (!string.IsNullOrWhiteSpace(options.Project))
-        {
-            arguments.Add("--project");
-            arguments.Add(options.Project);
-        }
+        AddOptionalArgument(arguments, "--project", options.Project);
+        AddScopesArgument(arguments, options.Scopes);
+        AddFlagArgument(arguments, "--wait", options.Wait);
 
-        if (options.Scopes.Count > 0)
-        {
-            arguments.Add("--scopes");
-            arguments.Add(string.Join(",", options.Scopes));
-        }
+        var processStartInfo = CreateProcessStartInfo(arguments);
 
-        if (options.Wait)
-        {
-            arguments.Add("--wait");
-        }
+        var (output, _, exitCode) = await ExecuteProcessAsync(processStartInfo, cancellationToken);
 
-        var processStartInfo = new ProcessStartInfo
-        {
-            FileName = "diagrid",
-            Arguments = string.Join(" ", arguments),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-
-        using var process = Process.Start(processStartInfo);
-
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-
-            if (process.ExitCode != 0 && ! output.Contains("already exists"))
-            {
-                throw new InvalidOperationException(output);
-            }
-        }
-        else
-        {
-            throw new InvalidOperationException("Failed to start diagrid process");
-        }
+        CheckExitCode(exitCode, output);
     }
 
     public static async Task CreateKvStore(
@@ -508,51 +249,15 @@ internal static class Commands
             kvStoreName,
         };
 
-        if (!string.IsNullOrWhiteSpace(options.Project))
-        {
-            arguments.Add("--project");
-            arguments.Add(options.Project);
-        }
+        AddOptionalArgument(arguments, "--project", options.Project);
+        AddScopesArgument(arguments, options.Scopes);
+        AddFlagArgument(arguments, "--wait", options.Wait);
 
-        if (options.Scopes.Count > 0)
-        {
-            arguments.Add("--scopes");
-            arguments.Add(string.Join(",", options.Scopes));
-        }
+        var processStartInfo = CreateProcessStartInfo(arguments);
 
-        if (options.Wait)
-        {
-            arguments.Add("--wait");
-        }
+        var (output, _, exitCode) = await ExecuteProcessAsync(processStartInfo, cancellationToken);
 
-        var processStartInfo = new ProcessStartInfo
-        {
-            FileName = "diagrid",
-            Arguments = string.Join(" ", arguments),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-
-        using var process = Process.Start(processStartInfo);
-
-        if (process != null)
-        {
-            await process.WaitForExitAsync(cancellationToken);
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-
-            if (process.ExitCode != 0 && ! output.Contains("already exists"))
-            {
-                throw new InvalidOperationException(output);
-            }
-        }
-        else
-        {
-            throw new InvalidOperationException("Failed to start diagrid process");
-        }
+        CheckExitCode(exitCode, output);
     }
 
     public static async Task<bool> CheckKvStoreExists(
@@ -577,7 +282,22 @@ internal static class Commands
         arguments.Add("--project");
         arguments.Add(projectName);
 
-        var processStartInfo = new ProcessStartInfo
+        var processStartInfo = CreateProcessStartInfo(arguments);
+        var (output, _, exitCode) = await ExecuteProcessAsync(processStartInfo, cancellationToken);
+
+        CheckExitCode(exitCode, output);
+
+        using var document = JsonDocument.Parse(output);
+        var root = document.RootElement;
+
+        return root.GetProperty("items")
+            .EnumerateArray()
+            .Any((kv) => kv.GetProperty("metadata").GetProperty("name").GetString() == kvStoreName);
+    }
+
+    private static ProcessStartInfo CreateProcessStartInfo(IList<string> arguments)
+    {
+        return new()
         {
             FileName = "diagrid",
             Arguments = string.Join(" ", arguments),
@@ -586,33 +306,68 @@ internal static class Commands
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+    }
 
+    private static async Task<(string output, string error, int exitCode)> ExecuteProcessAsync(
+        ProcessStartInfo processStartInfo,
+        CancellationToken cancellationToken
+    )
+    {
         using var process = Process.Start(processStartInfo);
 
-        if (process != null)
+        if (process is null)
         {
-            await process.WaitForExitAsync(cancellationToken);
-
-            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-
-            if (process.ExitCode != 0)
-            {
-                throw new InvalidOperationException(output);
-            }
-
-            using var document = JsonDocument.Parse(output);
-            var root = document.RootElement;
-
-            return root.GetProperty("items")
-                .EnumerateArray()
-                .Any((kv) => kv
-                    .GetProperty("metadata")
-                    .GetProperty("name")
-                    .GetString() == kvStoreName
-            );
+            throw new InvalidOperationException("Failed to start diagrid process");
         }
 
-        throw new InvalidOperationException("Failed to start diagrid process");
+        await process.WaitForExitAsync(cancellationToken);
+
+        var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+        var error = await process.StandardError.ReadToEndAsync(cancellationToken);
+
+        return (output, error, process.ExitCode);
+    }
+
+    private static void CheckExitCode(int exitCode, string output)
+    {
+        if (exitCode != 0 && ! output.Contains("already exists"))
+        {
+            throw new InvalidOperationException(output);
+        }
+    }
+
+    private static void AddOptionalArgument(IList<string> arguments, string flag, string? value)
+    {
+        if (! string.IsNullOrWhiteSpace(value))
+        {
+            arguments.Add(flag);
+            arguments.Add(value);
+        }
+    }
+
+    private static void AddFlagArgument(IList<string> arguments, string flag, bool condition)
+    {
+        if (condition)
+        {
+            arguments.Add(flag);
+        }
+    }
+
+    private static void AddOptionalIntArgument(IList<string> arguments, string flag, int? value)
+    {
+        if (value.HasValue)
+        {
+            arguments.Add(flag);
+            arguments.Add(value.Value.ToString());
+        }
+    }
+
+    private static void AddScopesArgument(IList<string> arguments, IList<string> scopes)
+    {
+        if (scopes.Count > 0)
+        {
+            arguments.Add("--scopes");
+            arguments.Add(string.Join(",", scopes));
+        }
     }
 }
