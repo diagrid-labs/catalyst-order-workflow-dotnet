@@ -42,10 +42,6 @@ builder.Services.AddDaprWorkflow((options) =>
 
 var app = builder.Build();
 
-Console.WriteLine("Starting Order Manager Service...");
-Console.WriteLine("Workflow engine configured with 5 activities");
-Console.WriteLine("API available at http://localhost:8081");
-
 app.UseCloudEvents();
 
 app.MapHealthChecks("/healthz");
@@ -54,6 +50,7 @@ app.MapScalarApiReference();
 
 app.MapWorkerEndpoints();
 
+Console.WriteLine("Workflow engine configured with 5 activities");
 Console.WriteLine("Order Manager Service ready!");
 
 app.Run();

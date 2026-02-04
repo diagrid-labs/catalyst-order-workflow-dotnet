@@ -15,7 +15,7 @@ public static class NotificationServiceEndpointExtensions
     public static IEndpointRouteBuilder MapNotificationServiceEndpoints(this IEndpointRouteBuilder app)
     {
         // Pub/Sub subscription handler for order notifications
-        app.MapPost("/order-notification", 
+        app.MapPost("/order-notification",
             [Topic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.OrderTopic)]
             async (OrderStatusNotification notification, IHubContext<NotificationHub> hubContext) =>
         {
@@ -29,8 +29,8 @@ public static class NotificationServiceEndpointExtensions
                 Metadata = new Dictionary<string, string>
                 {
                     { "OrderId", notification.OrderId },
-                    { "Status", notification.Status }
-                }
+                    { "Status", notification.Status },
+                },
             };
 
             lock (LockObject)
@@ -69,13 +69,13 @@ public static class NotificationServiceEndpointExtensions
         app.MapPost("/order", async (CreateOrderRequest request, DaprClient daprClient) =>
         {
             Console.WriteLine($"Creating new order - Customer: {request.CustomerId}, Items: {request.Items.Count}");
-            
+
             var httpClient = daprClient.CreateInvokableHttpClient(ResourceNames.OrderManager);
-            
+
             try
             {
                 var response = await httpClient.PostAsJsonAsync("/order", request);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadFromJsonAsync<CreateOrderResult>();

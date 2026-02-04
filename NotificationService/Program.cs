@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.ServiceDefaults;
 using Diagrid.Labs.Catalyst.OrderWorkflow.NotificationService;
@@ -43,10 +42,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-Console.WriteLine("Starting Notification Service...");
-Console.WriteLine("SignalR hub available at /notificationHub");
-Console.WriteLine("Web UI available at http://localhost:8083");
-
 app.UseCloudEvents();
 
 app.UseCors("AllowAll");
@@ -66,6 +61,6 @@ app.UseStaticFiles();
 // Map notification endpoints
 app.MapNotificationServiceEndpoints();
 
-Console.WriteLine("Notification Service ready!");
+Console.WriteLine("Notification service started...");
 
 app.Run();

@@ -18,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\NotificationService\NotificationService.csproj" />
       <ProjectReference Include="..\OrderManager\OrderManager.csproj" />
         <ProjectReference Include="..\InventoryService\InventoryService.csproj" />
     </ItemGroup>

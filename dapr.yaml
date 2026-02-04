@@ -11,16 +11,18 @@ apps:
     daprHTTPPort: 6003
     appPort: 8081
     appProtocol: http
-    command: [ "dotnet", "run", "--project", "OrderManager.csproj" ]
+    command: [ "dotnet", "run", "--project", "OrderManager.csproj", "--urls", "http://0.0.0.0:8081" ]
+
   - appID: inventory-service
     appDirPath: ./InventoryService
     daprHTTPPort: 6002
     appPort: 8082
     appProtocol: http
-    command: [ "dotnet", "run", "--project", "InventoryService.csproj" ]
+    command: [ "dotnet", "run", "--project", "InventoryService.csproj", "--urls", "http://0.0.0.0:8082" ]
+
   - appID: notification-service
     appDirPath: ./NotificationService
     daprHTTPPort: 6004
     appPort: 8083
     appProtocol: http
-    command: [ "dotnet", "run", "--project", "NotificationService.csproj" ]
+    command: [ "dotnet", "run", "--project", "NotificationService.csproj", "--urls", "http://0.0.0.0:8083" ]

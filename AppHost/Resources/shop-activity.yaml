@@ -6,7 +6,7 @@ spec:
   type: pubsub.redis
   version: v1
   metadata:
-    - name: redisHost
-      value: "localhost:16379"
-    - name: redisPassword
-      value: "zxczxc123"
+  - name: redisHost
+    value: localhost:16379
+  - name: redisPassword
+    value: "zxczxc123"
