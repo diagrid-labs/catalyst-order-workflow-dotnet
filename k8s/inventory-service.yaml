@@ -27,7 +27,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: catalyst-app-tokens
-                  key: catalyst-api-token
+                  key: inventory-service
           envFrom:
             - configMapRef:
                 name: catalyst-env

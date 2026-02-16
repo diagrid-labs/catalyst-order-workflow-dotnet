@@ -26,7 +26,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: catalyst-app-tokens
-                  key: catalyst-api-token
+                  key: order-manager
           envFrom:
             - configMapRef:
                 name: catalyst-env

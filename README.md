@@ -77,12 +77,14 @@ The services in this project use [a set of well-known environment variables for 
 
 ### Kubernetes secret for Catalyst tokens
 
-Create a secret with the Catalyst API token before applying the manifests:
+Create a secret with the App ID API tokens before applying the manifests:
 
 ```bash
 kubectl create secret generic catalyst-app-tokens \
   -n catalyst-order-workflow-demo \
-  --from-literal=catalyst-api-token="$CATALYST_API_KEY"
+  --from-literal=inventory-service="$INVENTORY_SERVICE_TOKEN" \
+  --from-literal=notification-service="$NOTIFICATION_SERVICE_TOKEN" \
+  --from-literal=order-manager="$ORDER_MANAGER_TOKEN"
 ```
 
 If you need to update the token later, delete and recreate the secret:
