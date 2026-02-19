@@ -28,6 +28,8 @@ spec:
                 secretKeyRef:
                   name: catalyst-app-tokens
                   key: inventory-service
+            - name: DAPR_APP_CALLBACK_URL
+              value: "http://demo-production-catalyst.westeurope.cloudapp.azure.com:8082"
           envFrom:
             - configMapRef:
                 name: catalyst-env

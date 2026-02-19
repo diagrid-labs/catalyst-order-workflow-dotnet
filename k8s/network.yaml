@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: callback-proxy-nginx
+  namespace: catalyst-order-workflow-demo
+data:
+  default.conf: |
+    server {
+      listen 8081;
+      location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://order-manager.catalyst-order-workflow-demo.svc.cluster.local:80;
+      }
+    }
+
+    server {
+      listen 8082;
+      location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://inventory-service.catalyst-order-workflow-demo.svc.cluster.local:80;
+      }
+    }
+
+    server {
+      listen 8083;
+      location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://notification-service.catalyst-order-workflow-demo.svc.cluster.local:80;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: callback-proxy
+  namespace: catalyst-order-workflow-demo
+  labels:
+    app: callback-proxy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: callback-proxy
+  template:
+    metadata:
+      labels:
+        app: callback-proxy
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.29-alpine
+          ports:
+            - containerPort: 8081
+            - containerPort: 8082
+            - containerPort: 8083
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: callback-proxy-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: callback-proxy
+  namespace: catalyst-order-workflow-demo
+  labels:
+    app: callback-proxy
+  annotations:
+    service.beta.kubernetes.io/azure-pip-name: "demo_production_catalyst"
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: "demo"
+spec:
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+    - 54.155.61.100/32
+  selector:
+    app: callback-proxy
+  ports:
+    - name: order-manager
+      port: 8081
+      targetPort: 8081
+      protocol: TCP
+    - name: inventory-service
+      port: 8082
+      targetPort: 8082
+      protocol: TCP
+    - name: notification-service
+      port: 8083
+      targetPort: 8083
+      protocol: TCP
