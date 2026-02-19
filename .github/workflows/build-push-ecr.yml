@@ -22,15 +22,18 @@ jobs:
       matrix:
         service:
           - name: order-manager
+            context: OrderManager
             dockerfile: OrderManager/Dockerfile
           - name: inventory-service
+            context: InventoryService
             dockerfile: InventoryService/Dockerfile
           - name: notification-service
+            context: .
             dockerfile: NotificationService/Dockerfile
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -53,7 +56,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ matrix.service.context }}
           file: ${{ matrix.service.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
