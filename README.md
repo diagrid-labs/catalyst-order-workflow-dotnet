@@ -52,6 +52,28 @@ kubectl apply -f k8s/
 kubectl get pods -n catalyst-order-workflow-demo
 ```
 
+### Demo prerequisites (Kubernetes)
+
+For the end-to-end demo flow to work, inventory must already contain the products used by orders. Ensure these product IDs exist in inventory:
+
+- `prod-001`
+- `prod-002`
+- `prod-003`
+- `prod-004`
+- `prod-005`
+
+The Notification Service endpoint is not publicly exposed yet. Port-forward the service to access the UI:
+
+```bash
+kubectl -n catalyst-order-workflow-demo port-forward svc/notification-service 8083:80
+```
+
+Then open:
+
+```text
+http://localhost:8083/
+```
+
 ## Technologies Used
 
 - [Dapr](https://dapr.io/)
@@ -88,10 +110,37 @@ Features:
 
 ![Workflow](/images/workflow.png)
 
-1. **Order Processing Workflow**: Complete order lifecycle from validation to fulfillment
-2. **Pub/Sub Notifications**: Real-time order status updates (created, payment processed, shipped, delivered)
-3. **Service Invocation**: Real-time inventory checks and order updates
-4. **State Store**: Persistent inventory management using Dapr state store
+### Workflow steps used in the demo
+
+The `OrderProcessingWorkflow` runs this sequence:
+
+1. Send `created` notification.
+2. Validate the order.
+3. Process payment.
+  - If successful, send `payment_processed` notification.
+4. Check inventory for requested items.
+5. Reserve inventory.
+6. Send `shipped` notification.
+7. Wait 40 seconds to simulate shipping/delivery time.
+8. Send `delivered` notification.
+9. Send `completed` notification.
+
+### Failure behavior
+
+- Validation failure sends `failed` and ends workflow.
+- Payment failure sends `failed` and ends workflow.
+- Inventory update failure sends `failed` and ends workflow.
+
+### Shipping delay
+
+The demo intentionally includes a **40-second shipping delay** between `shipped` and `delivered` using a workflow timer. This is why notifications appear in sequence with a noticeable pause before delivery/completion.
+
+### Architecture components
+
+1. **Order Processing Workflow**: Complete order lifecycle from validation to fulfillment.
+2. **Pub/Sub Notifications**: Real-time order status updates.
+3. **Service Invocation**: Inventory checks and inventory updates.
+4. **State Store**: Persistent inventory management using Dapr state store.
 
 ## Environment Variables
 
