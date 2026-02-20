@@ -22,13 +22,10 @@ jobs:
       matrix:
         service:
           - name: order-manager
-            context: OrderManager
             dockerfile: OrderManager/Dockerfile
           - name: inventory-service
-            context: InventoryService
             dockerfile: InventoryService/Dockerfile
           - name: notification-service
-            context: .
             dockerfile: NotificationService/Dockerfile
 
     steps:
@@ -56,7 +53,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.service.context }}
+          context: .
           file: ${{ matrix.service.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true

@@ -1,18 +1,21 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["OrderManagement.csproj", "."]
-RUN dotnet restore "OrderManagement.csproj"
+COPY ["OrderManager/OrderManager.csproj", "OrderManager/"]
+COPY ["Domain/Domain.csproj", "Domain/"]
+COPY ["ServiceDefaults/ServiceDefaults.csproj", "ServiceDefaults/"]
+RUN dotnet restore "OrderManager/OrderManager.csproj"
 COPY . .
-RUN dotnet build "OrderManagement.csproj" -c Release -o /app/build
+WORKDIR "/src/OrderManager"
+RUN dotnet build "OrderManager.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "OrderManagement.csproj" -c Release -o /app/publish
+RUN dotnet publish "OrderManager.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "OrderManagement.dll"]
+ENTRYPOINT ["dotnet", "Diagrid.Labs.Catalyst.OrderWorkflow.OrderManager.dll"]
