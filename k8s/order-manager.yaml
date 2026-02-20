@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: order-manager
-          image: public.ecr.aws/d3f9w4q8/catalyst-demo/order-manager:1.0
+          image: public.ecr.aws/e9f1v8j5/catalyst-demo/order-manager:1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
