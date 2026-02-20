@@ -20,7 +20,7 @@ resource "catalyst_appid" "inventory_service" {
   protocol   = "http"
 
   app_endpoint = {
-    url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com:8080/inventory-service"
+    url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com/inventory-service"
     client_timeout_seconds = 30
   }
 
@@ -39,7 +39,7 @@ resource "catalyst_appid" "notification_service" {
   protocol   = "http"
 
   app_endpoint = {
-    url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com:8080/notification-service"
+    url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com/notification-service"
     client_timeout_seconds = 30
   }
 
@@ -58,7 +58,7 @@ resource "catalyst_appid" "order_manager" {
   protocol   = "http"
 
   app_endpoint = {
-    url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com:8080/order-manager"
+    url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com/order-manager"
     client_timeout_seconds = 30
   }
 

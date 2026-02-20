@@ -29,7 +29,7 @@ spec:
                   name: catalyst-app-tokens
                   key: notification-service
             - name: DAPR_APP_CALLBACK_URL
-              value: "http://demo-production-catalyst.westeurope.cloudapp.azure.com:8080/notification-service"
+              value: "http://demo-production-catalyst.westeurope.cloudapp.azure.com/notification-service"
           envFrom:
             - configMapRef:
                 name: catalyst-env

@@ -28,7 +28,7 @@ spec:
                   name: catalyst-app-tokens
                   key: order-manager
             - name: DAPR_APP_CALLBACK_URL
-              value: "http://demo-production-catalyst.westeurope.cloudapp.azure.com:8080/order-manager"
+              value: "http://demo-production-catalyst.westeurope.cloudapp.azure.com/order-manager"
           envFrom:
             - configMapRef:
                 name: catalyst-env
