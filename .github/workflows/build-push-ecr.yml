@@ -8,7 +8,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  REGISTRY: public.ecr.aws/d3f9w4q8
+  REGISTRY: public.ecr.aws/e9f1v8j5
   IMAGE_VERSION: "1.0"
 
 jobs:
@@ -45,10 +45,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           audience: sts.amazonaws.com
 
-      - name: Login to Amazon ECR Public (alias scoped)
-        run: |
-          aws ecr-public get-login-password --region ${{ env.AWS_REGION }} \
-            | docker login --username AWS --password-stdin ${{ env.REGISTRY }}
+      - name: Login to Amazon ECR Public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
 
       - name: Build and push
         uses: docker/build-push-action@v6
