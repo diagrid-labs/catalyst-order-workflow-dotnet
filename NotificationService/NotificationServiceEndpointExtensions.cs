@@ -1,4 +1,3 @@
-using Dapr;
 using Dapr.Client;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.ServiceDefaults;
 using Diagrid.Labs.Catalyst.OrderWorkflow.NotificationService.Hubs;
@@ -12,12 +11,10 @@ public static class NotificationServiceEndpointExtensions
     private static readonly List<NotificationViewModel> NotificationHistory = new();
     private static readonly object LockObject = new();
 
-    public static IEndpointRouteBuilder MapNotificationServiceEndpoints(this IEndpointRouteBuilder app)
+    public static void MapNotificationServiceEndpoints(this IEndpointRouteBuilder app)
     {
         // Pub/Sub subscription handler for order notifications
-        app.MapPost("/order-notification",
-            [Topic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.OrderTopic)]
-            async (OrderStatusNotification notification, IHubContext<NotificationHub> hubContext) =>
+        app.MapPost("/order-notification", async (OrderStatusNotification notification, IHubContext<NotificationHub> hubContext) =>
         {
             Console.WriteLine($"Received order notification - Order ID: {notification.OrderId}, Status: {notification.Status}");
             var viewModel = new NotificationViewModel
@@ -50,7 +47,8 @@ public static class NotificationServiceEndpointExtensions
             return Results.Ok();
         })
         .WithName("OrderNotification")
-        .WithOpenApi();
+        .WithOpenApi()
+        .WithTopic(ShopActivityPubSub.PubSubName, ShopActivityPubSub.OrderTopic);
 
         // Get notification history
         app.MapGet("/notifications/history", () =>
@@ -105,7 +103,5 @@ public static class NotificationServiceEndpointExtensions
         })
         .WithName("CreateOrder")
         .WithOpenApi();
-
-        return app;
     }
 }
