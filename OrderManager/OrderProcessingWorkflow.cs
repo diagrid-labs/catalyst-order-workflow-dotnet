@@ -94,8 +94,10 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             new NotificationRequest(orderId, "shipped", $"Order {orderId} has been shipped and is on its way")
         );
 
-        Console.WriteLine($"Waiting 40 seconds for delivery simulation...");
-        await context.CreateTimer(TimeSpan.FromSeconds(40));
+        await context.CallChildWorkflowAsync<ShippingWorkflowOutput>(nameof(ShippingWorkflow), new ShippingWorkflowInput
+        {
+            OrderId = orderId,
+        });
 
         await context.CallActivityAsync(
             nameof(SendNotificationActivity),
@@ -105,6 +107,19 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
         await context.CallActivityAsync(
             nameof(SendNotificationActivity),
             new NotificationRequest(orderId, "completed", $"Order {orderId} processing completed successfully")
+        );
+
+        Console.WriteLine($"Waiting 40 seconds for delivery simulation...");
+        await context.CreateTimer(TimeSpan.FromSeconds(40));
+
+        // note: This demonstrates the importance of keeping any volatile state inside activities.
+        var delay = await context.CallActivityAsync<int>(nameof(CustomerFeedbackDelay));
+
+        await context.CreateTimer(TimeSpan.FromSeconds(delay));
+
+        await context.CallActivityAsync(
+            nameof(SendNotificationActivity),
+            new NotificationRequest(orderId, "feedback", $"Order {orderId} received customer feedback!")
         );
 
         Console.WriteLine($"Order processing completed successfully for Order ID: {orderId}");
