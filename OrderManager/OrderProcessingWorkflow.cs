@@ -50,10 +50,20 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             return new(false, $"Payment processing failed: {paymentResult.Reason}");
         }
 
-        await context.CallActivityAsync(
+        var paymentNotificationiActivity = context.CallActivityAsync(
             nameof(SendNotificationActivity),
             new NotificationRequest(orderId, "payment_processed", $"Payment for order {orderId} has been processed successfully")
         );
+
+        var subscribeToCampaignActivity = context.CallActivityAsync(nameof(StartCampaignActivity), new StartCampaignInput
+        {
+            OrderId = orderId,
+        });
+
+        await Task.WhenAll([
+            paymentNotificationiActivity,
+            subscribeToCampaignActivity,
+        ]);
 
         var inventoryCheckRequest = new InventoryCheckRequest
         {
@@ -99,24 +109,12 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             OrderId = orderId,
         });
 
-        await context.CallActivityAsync(
-            nameof(SendNotificationActivity),
-            new NotificationRequest(orderId, "delivered", $"Order {orderId} has been delivered successfully")
-        );
-
-        await context.CallActivityAsync(
-            nameof(SendNotificationActivity),
-            new NotificationRequest(orderId, "completed", $"Order {orderId} processing completed successfully")
-        );
-
-        Console.WriteLine($"Waiting 40 seconds for delivery simulation...");
-        await context.CreateTimer(TimeSpan.FromSeconds(40));
-
         // note: This demonstrates the importance of keeping any volatile state inside activities.
         var delay = await context.CallActivityAsync<int>(nameof(CustomerFeedbackDelay));
 
         await context.CreateTimer(TimeSpan.FromSeconds(delay));
 
+        // todo: We could generate this using AI in the future!
         await context.CallActivityAsync(
             nameof(SendNotificationActivity),
             new NotificationRequest(orderId, "feedback", $"Order {orderId} received customer feedback!")
