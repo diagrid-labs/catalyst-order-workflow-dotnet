@@ -17,12 +17,14 @@ spec:
     spec:
       containers:
         - name: inventory-service
+          # You can use this public image for the demo, or build and push your own
           image: public.ecr.aws/e9f1v8j5/catalyst-demo/inventory-service:1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           command: ["dotnet", "Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService.dll"]
           env:
+            # Ensure the secret 'catalyst-app-tokens' is created with key 'inventory-service' containing the App ID token
             - name: DAPR_API_TOKEN
               valueFrom:
                 secretKeyRef:

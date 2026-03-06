@@ -19,6 +19,7 @@ resource "catalyst_appid" "inventory_service" {
   name       = "inventory-service"
   protocol   = "http"
 
+  # Replace this URL with your actual Ingress endpoint for the Inventory Service
   app_endpoint = {
     url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com/inventory-service"
     client_timeout_seconds = 30
@@ -38,6 +39,7 @@ resource "catalyst_appid" "notification_service" {
   name       = "notification-service"
   protocol   = "http"
 
+  # Replace this URL with your actual Ingress endpoint for the Notification Service
   app_endpoint = {
     url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com/notification-service"
     client_timeout_seconds = 30
@@ -57,6 +59,7 @@ resource "catalyst_appid" "order_manager" {
   name       = "order-manager"
   protocol   = "http"
 
+  # Replace this URL with your actual Ingress endpoint for the Order Manager
   app_endpoint = {
     url                    = "http://demo-production-catalyst.westeurope.cloudapp.azure.com/order-manager"
     client_timeout_seconds = 30

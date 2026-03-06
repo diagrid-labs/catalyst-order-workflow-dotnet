@@ -17,11 +17,13 @@ spec:
     spec:
       containers:
         - name: order-manager
+          # You can use this public image for the demo, or build and push your own
           image: public.ecr.aws/e9f1v8j5/catalyst-demo/order-manager:1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
+            # Ensure the secret 'catalyst-app-tokens' is created with key 'order-manager' containing the App ID token
             - name: DAPR_API_TOKEN
               valueFrom:
                 secretKeyRef:

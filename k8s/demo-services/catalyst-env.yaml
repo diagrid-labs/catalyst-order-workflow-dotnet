@@ -5,5 +5,7 @@ metadata:
   namespace: catalyst-order-workflow-demo
 data:
   ASPNETCORE_URLS: "http://+:8080"
+  # Replace with your Catalyst Project HTTP Endpoint
   DAPR_HTTP_ENDPOINT: "https://http-prj576358.cloud.r1.diagrid.io:443"
+  # Replace with your Catalyst Project gRPC Endpoint
   DAPR_GRPC_ENDPOINT: "https://grpc-prj576358.cloud.r1.diagrid.io:443"
