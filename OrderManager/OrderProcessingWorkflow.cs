@@ -50,7 +50,7 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             return new(false, $"Payment processing failed: {paymentResult.Reason}");
         }
 
-        var paymentNotificationiActivity = context.CallActivityAsync(
+        var paymentNotificationActivity = context.CallActivityAsync(
             nameof(SendNotificationActivity),
             new NotificationRequest(orderId, "payment_processed", $"Payment for order {orderId} has been processed successfully")
         );
@@ -61,7 +61,7 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
         });
 
         await Task.WhenAll([
-            paymentNotificationiActivity,
+            paymentNotificationActivity,
             subscribeToCampaignActivity,
         ]);
 
