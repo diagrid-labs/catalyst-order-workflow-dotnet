@@ -1,34 +1,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-manager
+  name: inventory-service
   namespace: catalyst-order-workflow-demo
   labels:
-    app: order-manager
+    app: inventory-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: order-manager
+      app: inventory-service
   template:
     metadata:
       labels:
-        app: order-manager
+        app: inventory-service
     spec:
       containers:
-        - name: order-manager
-          image: public.ecr.aws/e9f1v8j5/catalyst-demo/order-manager:1.0
+        - name: inventory-service
+          # You can use this public image for the demo, or build and push your own
+          image: public.ecr.aws/e9f1v8j5/catalyst-demo/inventory-service:1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+          command: ["dotnet", "Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService.dll"]
           env:
+            # Ensure the secret 'catalyst-app-tokens' is created with key 'inventory-service' containing the App ID token
             - name: DAPR_API_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: catalyst-app-tokens
-                  key: order-manager
-            - name: DAPR_APP_CALLBACK_URL
-              value: "http://demo-production-catalyst.westeurope.cloudapp.azure.com/order-manager"
+                  key: inventory-service
           envFrom:
             - configMapRef:
                 name: catalyst-env
@@ -48,12 +49,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: order-manager
+  name: inventory-service
   labels:
-    app: order-manager
+    app: inventory-service
 spec:
   selector:
-    app: order-manager
+    app: inventory-service
   ports:
     - name: http
       port: 80
