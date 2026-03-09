@@ -6,8 +6,6 @@ namespace Diagrid.Labs.Catalyst.OrderWorkflow.OrderManager.Activity;
 
 public class CustomerFeedbackDelay : WorkflowActivity<bool, int>
 {
-    public const string Name = "customer-feedback-delay";
-
     public override Task<int> RunAsync(WorkflowActivityContext context, bool input)
     {
         var random = new Random();
