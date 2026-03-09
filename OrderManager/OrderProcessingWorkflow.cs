@@ -110,7 +110,7 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
         });
 
         // note: This demonstrates the importance of keeping any volatile state inside activities.
-        var delay = await context.CallActivityAsync<int>(nameof(CustomerFeedbackDelay));
+        var delay = await context.CallActivityAsync<int>(nameof(CustomerFeedbackDelay), true);
 
         await context.CreateTimer(TimeSpan.FromSeconds(delay));
 
