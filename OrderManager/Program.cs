@@ -39,6 +39,7 @@ builder.Services.AddDaprWorkflow((options) =>
         options.RegisterActivity<UpdateInventoryActivity>();
         options.RegisterActivity<SendNotificationActivity>();
         options.RegisterActivity<CustomerFeedbackDelay>();
+        options.RegisterActivity<StartCampaignActivity>();
 
     options.RegisterWorkflow<ShippingWorkflow>();
 });
