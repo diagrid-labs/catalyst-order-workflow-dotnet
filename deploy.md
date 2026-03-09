@@ -43,7 +43,7 @@ You will need a Diagrid API Key to authenticate with the Catalyst provider. You 
 
 3. Apply the configuration:
    ```bash
-   export DIAGRID_API_KEY=<your-api-key>
+   export CATALYST_API_KEY==<your-api-key>
    terraform apply
    ```
 
