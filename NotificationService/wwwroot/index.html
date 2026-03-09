@@ -63,14 +63,21 @@
                     <label for="customer-id">Customer ID</label>
                     <input type="text" id="customer-id" name="customerId" placeholder="e.g., Alice" required>
                 </div>
-                
+
                 <div class="form-section">
                     <h3>Order Items</h3>
                     <div id="items-container">
                         <div class="item-row">
                             <div class="form-group">
                                 <label>Product ID</label>
-                                <input type="text" name="productId" placeholder="e.g., prod-001" required>
+                                <select name="productId" class="form-select" required>
+                                    <option value="" disabled selected>Select a product...</option>
+                                    <option value="prod-001">prod-001</option>
+                                    <option value="prod-002">prod-002</option>
+                                    <option value="prod-003">prod-003</option>
+                                    <option value="prod-004">prod-004</option>
+                                    <option value="prod-005">prod-005</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>Quantity</label>

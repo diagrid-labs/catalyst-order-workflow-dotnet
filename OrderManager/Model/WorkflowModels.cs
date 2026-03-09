@@ -33,3 +33,8 @@ public record InventoryUpdateResponse
     public string Message { get; set; } = string.Empty;
     public DateTime UpdatedAt { get; set; }
 }
+
+public record StartCampaignInput
+{
+    public required string OrderId { get; init; }
+}
