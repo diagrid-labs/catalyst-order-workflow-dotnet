@@ -30,27 +30,6 @@ public class ShippingWorkflow : Workflow<ShippingWorkflowInput, ShippingWorkflow
 
         await context.CallActivityAsync(
             nameof(SendNotificationActivity),
-            new NotificationRequest(orderId, "departed_origin", $"Order {orderId} has departed from origin facility")
-        );
-
-        await context.CreateTimer(TimeSpan.FromSeconds(5));
-
-        await context.CallActivityAsync(
-            nameof(SendNotificationActivity),
-            new NotificationRequest(orderId, "in_transit", $"Order {orderId} is in transit")
-        );
-
-        await context.CreateTimer(TimeSpan.FromSeconds(5));
-
-        await context.CallActivityAsync(
-            nameof(SendNotificationActivity),
-            new NotificationRequest(orderId, "arrived_hub", $"Order {orderId} has arrived at regional hub")
-        );
-
-        await context.CreateTimer(TimeSpan.FromSeconds(5));
-
-        await context.CallActivityAsync(
-            nameof(SendNotificationActivity),
             new NotificationRequest(orderId, "out_for_delivery", $"Order {orderId} is out for delivery")
         );
 
