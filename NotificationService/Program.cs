@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Text.Json;
 using Diagrid.Labs.Catalyst.OrderWorkflow.Common.ServiceDefaults;
 using Diagrid.Labs.Catalyst.OrderWorkflow.NotificationService;
@@ -23,6 +24,18 @@ builder.Services.AddDaprClient((daprBuilder) =>
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
+    });
+
+    daprBuilder.UseGrpcChannelOptions(new Grpc.Net.Client.GrpcChannelOptions
+    {
+        HttpHandler = new SocketsHttpHandler
+        {
+            PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
+            KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+            KeepAlivePingTimeout = TimeSpan.FromSeconds(30),
+            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
+            EnableMultipleHttp2Connections = true,
+        }
     });
 });
 
