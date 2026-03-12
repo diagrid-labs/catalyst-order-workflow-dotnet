@@ -16,48 +16,46 @@ The project features three Dapr building block APIs:
  - [Pub/Sub](https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-overview)
  - [Service Invocation](https://docs.dapr.io/developing-applications/building-blocks/service-invocation/service-invocation-overview)
 
-## Run locally 
+## Run, deploy, and release notes
 
-This project uses .NET Aspire to provide an easy local development experience. Use the [running documentation](./running.md) for a step-by-step guide.
+- Local development: use [running.md](./running.md).
+- External Kubernetes deployment: use [deploy.md](./deploy.md) (external/manual flow).
+- Internal environments use Argo CD to sync this repository (see [Argo/demo-app.yaml](./Argo/demo-app.yaml)).
+- Internal reliability testing also uses Chaos Mesh (see [chaos-mesh.md](./chaos-mesh.md)).
+- Release updates: bump `.github/workflows/build-push-ecr.yml` (`IMAGE_VERSION`) and update image tags in:
+  - `k8s/demo-services/order-manager.yaml`
+  - `k8s/demo-services/inventory-service.yaml`
+  - `k8s/demo-services/notification-service.yaml`
 
-## Deploy to Kubernetes
+Argo CD access (internal):
 
-See the [Deployment Guide](./deploy.md) for instructions on how to provision Catalyst resources and deploy the application to Kubernetes.
-
-### Demo prerequisites (Kubernetes)
-
-For the end-to-end demo flow to work, inventory must already contain the products used by orders. Ensure these product IDs exist in inventory:
-
-- `prod-001`
-- `prod-002`
-- `prod-003`
-- `prod-004`
-- `prod-005`
-
-The Notification Service endpoint is not publicly exposed yet. Port-forward the service to access the UI:
+To inspect internal Argo CD state:
 
 ```bash
-kubectl -n catalyst-order-workflow-demo port-forward svc/notification-service 8083:80
+kubectl -n argocd port-forward svc/argocd-server 8084:80
+argocd admin initial-password -n argocd
 ```
 
-Then open:
-
-```text
-http://localhost:8083/
-```
+Then open `http://localhost:8084` and sign in with user `admin` and the password from the command above.
 
 ## Technologies Used
 
 - [Dapr](https://dapr.io/)
 - [Diagrid Catalyst](https://www.diagrid.io/catalyst)
-- [ASP.NET](https://dotnet.microsoft.com/apps/aspnet)
-    - [Aspire](https://learn.microsoft.com/dotnet/aspire/get-started/aspire-overview)
-    - [Tracing](https://learn.microsoft.com/dotnet/core/diagnostics/distributed-tracing-instrumentation-walkthroughs)
-    - [Health checks](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-10.0)
-    - [Secrets management](https://learn.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-10.0&tabs=linux)
-    - [Minimal APIs](https://learn.microsoft.com/aspnet/core/tutorials/min-web-api?view=aspnetcore-10.0&tabs=visual-studio)
-    - [Toplevel Statements](https://learn.microsoft.com/dotnet/csharp/fundamentals/program-structure/top-level-statements)
+- [.NET and Aspire](https://learn.microsoft.com/dotnet/aspire/get-started/aspire-overview)
 - [Scalar API browser](https://scalar.com)
+
+## Required Environment Variables
+
+These Dapr environment variables are required by the services:
+
+- `APP_ID`
+- `APP_PORT`
+- `DAPR_API_TOKEN`
+- `DAPR_HTTP_ENDPOINT`
+- `DAPR_GRPC_ENDPOINT`
+
+For local Aspire runs, these are set automatically. For Catalyst-backed runs/deployments, provide values from your Catalyst project and App IDs.
 
 Workflow visibility is provided by the [Diagrid Dashboard](https://docs.diagrid.io/develop/diagrid-dashboard), a utility container created to enhance the local Dapr developer experience.
 
@@ -114,127 +112,14 @@ The demo intentionally includes a **40-second shipping delay** between `shipped`
 3. **Service Invocation**: Inventory checks and inventory updates.
 4. **State Store**: Persistent inventory management using Dapr state store.
 
-## Environment Variables
+## API and Test References
 
-The services in this project use [a set of well-known environment variables for configuring Dapr](https://docs.dapr.io/reference/environment/).
+For endpoint and request examples, use:
 
-- `APP_ID` - Name of the application, often in kebab-case
-- `APP_PORT` - Port on which the service listens
-- `DAPR_API_TOKEN` - Dapr API token
-- `DAPR_GRPC_ENDPOINT` - Dapr gRPC endpoint
-- `DAPR_HTTP_ENDPOINT` - Dapr HTTP endpoint
+- [order-manager.openapi.json](./order-manager.openapi.json)
+- [endpoints.http](./endpoints.http)
 
-### Order Management Service Endpoints
+For full run/deploy instructions, use:
 
-- `POST /order` - Start an order processing workflow
-- `GET /order/{orderId}` - Get the status of a workflow by ID
-
-To try using the Service Invocation API directly vs. through a workflow:
-
-- `POST /inventory/search` - Check inventory for multiple items via service invocation
-- `GET /inventory/{productId}` - Show current inventory for a single product via service invocation
-
-### Inventory Service Endpoints
-
-- `POST /inventory/search` - Get current inventory from the state store
-- `GET /inventory/{productId}` - Get current inventory for a single product
-- `POST /inventory/initialize` - Initialize state store inventory with sample data
-- `POST /inventory/update` - Update inventory levels in state store
-- `POST /order-notification` - Pubsub subscription handler for order notifications
-
-### Notification Service Endpoints
-
-- `GET /` - Web UI dashboard displaying real-time notifications
-- `POST /order-notification` - Pubsub subscription handler for order notifications (displays in UI)
-- `POST /order` - Create a new order (via Dapr service invocation to OrderManager)
-- `GET /notifications/history` - Get historical notifications
-- `/notificationHub` - SignalR hub for real-time notification updates
-
-The Notification Service provides a modern web interface at `http://localhost:8083` where you can view all order notifications in real-time.
-
-When running targeting a local Dapr, these environment variables are automatically set by the Aspire Dapr integration. When
-running targeting Catalyst, they are set based on values from Catalyst that you will provide.
-
-
-### Testing the APIs
-
-With the application running, use the following commands to call the APIs.
-
-#### Initialize Inventory (State Store)
-
-```bash
-curl -X POST http://localhost:8081/inventory/initialize
-```
-
-### Process an Order (Workflow)
-
-```bash
-curl -X POST http://localhost:8080/orders/process \
-  -H "Content-Type: application/json" \
-  -d '{
-    "customerId": "cust-001",
-    "items": [
-      {"productId": "prod-001", "quantity": 2, "price": 29.99},
-      {"productId": "prod-002", "quantity": 1, "price": 49.99}
-    ]
-  }'
-```
-
-#### Check Workflow Status
-
-```bash
-curl http://localhost:8080/orders/{orderId}/status
-```
-
-#### Check Inventory (Service Invocation)
-
-**Check multiple items:**
-
-```bash
-curl -X POST http://localhost:8080/orders/check-inventory \
-  -H "Content-Type: application/json" \
-  -d '{
-    "items": [
-      {"productId": "prod-001"},
-      {"productId": "prod-002"}
-    ]
-  }'
-```
-
-**Check single product:**
-
-```bash
-curl http://localhost:8080/orders/check-inventory/prod-001
-```
-
-### Testing the Deployed Applications
-
-Once deployed, you'll receive URLs for both services. Use these URLs to test:
-
-#### Initialize Inventory
-
-```bash
-curl -X POST https://$INVENTORY_URL/inventory/initialize
-```
-
-#### Process an Order
-
-```bash
-curl -X POST https://$ORDER_URL/orders/process \
-  -H "Content-Type: application/json" \
-  -d '{
-    "customerId": "cust-001",
-    "items": [
-      {"productId": "prod-001", "quantity": 2, "price": 29.99},
-      {"productId": "prod-002", "quantity": 1, "price": 49.99}
-    ]
-  }'
-```
-
-Retrieve the `orderId` from the payload returned and replace it in the curl command below.
-
-#### Check Status of Workflow
-
-```bash
-curl https://$ORDER_URL/orders/{orderId}/status
-```
+- [running.md](./running.md)
+- [deploy.md](./deploy.md)
