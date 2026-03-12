@@ -16,7 +16,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
         var retryPolicy = new WorkflowRetryPolicy(
             maxNumberOfAttempts: 5,
             firstRetryInterval: TimeSpan.FromSeconds(1),
-            backoffCoefficient: 2.0
+            backoffCoefficient: 2.0,
+            maxRetryInterval: TimeSpan.FromSeconds(60)
         );
         var activityOptions = new WorkflowTaskOptions(retryPolicy);
 
