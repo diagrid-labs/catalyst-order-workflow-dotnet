@@ -22,35 +22,7 @@ This project uses .NET Aspire to provide an easy local development experience. U
 
 ## Deploy to Kubernetes
 
-This deployment targets Catalyst (no Dapr sidecars). You must provide App ID tokens and Catalyst endpoints.
-
-1) Create the namespace:
-
-```bash
-kubectl create namespace catalyst-order-workflow-demo
-```
-
-2) Create the secret with App ID tokens:
-
-```bash
-kubectl create secret generic catalyst-app-tokens \
-  -n catalyst-order-workflow-demo \
-  --from-literal=inventory-service="$INVENTORY_SERVICE_TOKEN" \
-  --from-literal=notification-service="$NOTIFICATION_SERVICE_TOKEN" \
-  --from-literal=order-manager="$ORDER_MANAGER_TOKEN"
-```
-
-3) Update the Catalyst endpoints in [k8s/catalyst-env.yaml](k8s/catalyst-env.yaml), then apply manifests:
-
-```bash
-kubectl apply -f k8s/
-```
-
-4) Verify pods are running:
-
-```bash
-kubectl get pods -n catalyst-order-workflow-demo
-```
+See the [Deployment Guide](./deploy.md) for instructions on how to provision Catalyst resources and deploy the application to Kubernetes.
 
 ### Demo prerequisites (Kubernetes)
 
@@ -151,10 +123,6 @@ The services in this project use [a set of well-known environment variables for 
 - `DAPR_API_TOKEN` - Dapr API token
 - `DAPR_GRPC_ENDPOINT` - Dapr gRPC endpoint
 - `DAPR_HTTP_ENDPOINT` - Dapr HTTP endpoint
-
-### Kubernetes secret for Catalyst tokens
-
-See [Deploy to Kubernetes](README.md#deploy-to-kubernetes) for secret creation steps.
 
 ### Order Management Service Endpoints
 

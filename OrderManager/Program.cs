@@ -33,11 +33,15 @@ builder.Services.AddDaprClient((daprBuilder) =>
 builder.Services.AddDaprWorkflow((options) =>
 {
     options.RegisterWorkflow<OrderProcessingWorkflow>();
-    options.RegisterActivity<ValidateOrderActivity>();
-    options.RegisterActivity<ProcessPaymentActivity>();
-    options.RegisterActivity<CheckInventoryActivity>();
-    options.RegisterActivity<UpdateInventoryActivity>();
-    options.RegisterActivity<SendNotificationActivity>();
+        options.RegisterActivity<ValidateOrderActivity>();
+        options.RegisterActivity<ProcessPaymentActivity>();
+        options.RegisterActivity<CheckInventoryActivity>();
+        options.RegisterActivity<UpdateInventoryActivity>();
+        options.RegisterActivity<SendNotificationActivity>();
+        options.RegisterActivity<CustomerFeedbackDelay>();
+        options.RegisterActivity<StartCampaignActivity>();
+
+    options.RegisterWorkflow<ShippingWorkflow>();
 });
 
 var app = builder.Build();

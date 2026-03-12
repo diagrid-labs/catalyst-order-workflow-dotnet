@@ -17,19 +17,19 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: public.ecr.aws/e9f1v8j5/catalyst-demo/notification-service:1.0
+          # You can use this public image for the demo, or build and push your own
+          image: public.ecr.aws/e9f1v8j5/catalyst-demo/notification-service:2.5
           imagePullPolicy: IfNotPresent
           command: ["dotnet", "NotificationService.dll"]
           ports:
             - containerPort: 8080
           env:
+            # Ensure the secret 'catalyst-app-tokens' is created with key 'notification-service' containing the App ID token
             - name: DAPR_API_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: catalyst-app-tokens
                   key: notification-service
-            - name: DAPR_APP_CALLBACK_URL
-              value: "http://demo-production-catalyst.westeurope.cloudapp.azure.com/notification-service"
           envFrom:
             - configMapRef:
                 name: catalyst-env

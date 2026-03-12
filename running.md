@@ -68,13 +68,13 @@ You can also run the services locally using the Dapr CLI.
 1. Run the inventory service
 
 ```bash
-dapr run --app-id inventory-service --app-port 8081 --dapr-http-port 6002 --resources-path ../components -- dotnet run --project InventoryService.csproj
+dapr run --app-id inventory-service --app-port 8082 --dapr-http-port 6002 --resources-path ../components -- dotnet run --project InventoryService.csproj
 ```
 
 2. Run the order manager workflow:
 
 ```bash
-dapr run --app-id order-manager --app-port 8080 --dapr-http-port 6003 --resources-path ../components -- dotnet run --project OrderManager.csproj
+dapr run --app-id order-manager --app-port 8081 --dapr-http-port 6003 --resources-path ../components -- dotnet run --project OrderManager.csproj
 ```
 
 3. Run the notification service with web UI:

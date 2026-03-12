@@ -16,7 +16,6 @@ apps:
   - appID: inventory-service
     appDirPath: ./InventoryService
     daprHTTPPort: 6002
-    appPort: 8082
     appProtocol: http
     command: [ "dotnet", "run", "--project", "InventoryService.csproj", "--urls", "http://0.0.0.0:8082" ]
 
