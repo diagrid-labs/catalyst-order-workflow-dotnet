@@ -112,3 +112,56 @@ diagrid dev run --file dapr.yaml --project order-manager-workflow
 ```bash
 diagrid dev stop -f dapr.yaml
 ```
+
+---
+
+## Quick API smoke tests (local)
+
+Use these after starting the app locally (Aspire or Dapr CLI).
+
+1. Initialize demo inventory:
+
+```bash
+curl -X POST http://localhost:8081/inventory/initialize
+```
+
+2. Start an order workflow:
+
+```bash
+curl -X POST http://localhost:8080/orders/process \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": "cust-001",
+    "items": [
+      {"productId": "prod-001", "quantity": 2, "price": 29.99},
+      {"productId": "prod-002", "quantity": 1, "price": 49.99}
+    ]
+  }'
+```
+
+3. Check workflow status (replace `{orderId}`):
+
+```bash
+curl http://localhost:8080/orders/{orderId}/status
+```
+
+4. Check inventory via service invocation:
+
+```bash
+curl -X POST http://localhost:8080/orders/check-inventory \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [
+      {"productId": "prod-001"},
+      {"productId": "prod-002"}
+    ]
+  }'
+```
+
+5. Open the Notification UI:
+
+```text
+http://localhost:8083/
+```
+
+For additional request examples, use [endpoints.http](./endpoints.http).
