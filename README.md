@@ -74,10 +74,6 @@ Then open:
 http://localhost:8083/
 ```
 
-## Chaos Mesh
-
-See [chaos-mesh.md](./chaos-mesh.md) for chaos engineering setup and usage.
-
 ## Technologies Used
 
 - [Dapr](https://dapr.io/)
