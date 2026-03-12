@@ -25,6 +25,15 @@ cd AppHost
 dotnet run
 ```
 
+### Local developer tools
+
+When running locally, you can use these tools:
+
+- Diagrid Dashboard for workflow visibility: [Diagrid Dashboard docs](https://docs.diagrid.io/develop/diagrid-dashboard)
+- Scalar API tester: [http://localhost:8081/scalar](http://localhost:8081/scalar)
+
+![Diagrid Dashboard](/images/diagrid-dashboard-workflow.png)
+
 ---
 
 ## Run with Aspire & Catalyst
@@ -128,7 +137,7 @@ curl -X POST http://localhost:8081/inventory/initialize
 2. Start an order workflow:
 
 ```bash
-curl -X POST http://localhost:8080/orders/process \
+curl -X POST http://localhost:8081/orders/process \
   -H "Content-Type: application/json" \
   -d '{
     "customerId": "cust-001",
@@ -142,13 +151,13 @@ curl -X POST http://localhost:8080/orders/process \
 3. Check workflow status (replace `{orderId}`):
 
 ```bash
-curl http://localhost:8080/orders/{orderId}/status
+curl http://localhost:8081/orders/{orderId}/status
 ```
 
 4. Check inventory via service invocation:
 
 ```bash
-curl -X POST http://localhost:8080/orders/check-inventory \
+curl -X POST http://localhost:8081/orders/check-inventory \
   -H "Content-Type: application/json" \
   -d '{
     "items": [
