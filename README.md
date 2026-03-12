@@ -2,7 +2,7 @@
 
 ![Architecture Diagram](/images/architecture.png)
 
-This demo application showcases workflows and local development using Dapr and the Diagrid Dashboard using an e-commerce scenario.  The scenario consists of three microservices:
+This demo application showcases workflows and local development with Dapr using an e-commerce scenario. The scenario consists of three microservices:
 
 - **Order Management Service** (`order-manager`) - A controller app that orchestrates order processing
 - **Inventory Service** (`inventory-service`) - A worker app that manages inventory and processes notifications
@@ -10,11 +10,12 @@ This demo application showcases workflows and local development using Dapr and t
 
 Under its default configuration, the applications in this solution do not depend on any external services.
 
-The project features three Dapr building block APIs:
+The project features these Dapr building blocks:
 
  - [Workflow](https://docs.dapr.io/developing-applications/building-blocks/workflow/workflow-overview)
  - [Pub/Sub](https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-overview)
  - [Service Invocation](https://docs.dapr.io/developing-applications/building-blocks/service-invocation/service-invocation-overview)
+ - [State management](https://docs.dapr.io/developing-applications/building-blocks/state-management/state-management-overview)
 
 ## Run, deploy, and release notes
 
@@ -43,7 +44,6 @@ Then open `http://localhost:8084` and sign in with user `admin` and the password
 - [Dapr](https://dapr.io/)
 - [Diagrid Catalyst](https://www.diagrid.io/catalyst)
 - [.NET and Aspire](https://learn.microsoft.com/dotnet/aspire/get-started/aspire-overview)
-- [Scalar API browser](https://scalar.com)
 
 ## Required Environment Variables
 
@@ -56,15 +56,6 @@ These Dapr environment variables are required by the services:
 - `DAPR_GRPC_ENDPOINT`
 
 For local Aspire runs, these are set automatically. For Catalyst-backed runs/deployments, provide values from your Catalyst project and App IDs.
-
-Workflow visibility is provided by the [Diagrid Dashboard](https://docs.diagrid.io/develop/diagrid-dashboard), a utility container created to enhance the local Dapr developer experience.
-
-![Diagrid Dashboard](/images/diagrid-dashboard-workflow.png)
-
-An API tester is also included for the Order Manager service which can be accessed by visiting `/scalar` on the Order
-Manager service address.
-
-![Scalar](/images/scalar.png)
 
 ## Notification UI
 
@@ -104,13 +95,6 @@ The `OrderProcessingWorkflow` runs this sequence:
 ### Shipping delay
 
 The demo intentionally includes a **40-second shipping delay** between `shipped` and `delivered` using a workflow timer. This is why notifications appear in sequence with a noticeable pause before delivery/completion.
-
-### Architecture components
-
-1. **Order Processing Workflow**: Complete order lifecycle from validation to fulfillment.
-2. **Pub/Sub Notifications**: Real-time order status updates.
-3. **Service Invocation**: Inventory checks and inventory updates.
-4. **State Store**: Persistent inventory management using Dapr state store.
 
 ## API and Test References
 

@@ -25,6 +25,16 @@ cd AppHost
 dotnet run
 ```
 
+### Local developer tools
+
+When running locally, you can use these tools:
+
+- Diagrid Dashboard for workflow visibility: [Diagrid Dashboard docs](https://docs.diagrid.io/develop/diagrid-dashboard)
+- Scalar API tester at `/scalar` on the Order Manager service
+
+![Diagrid Dashboard](/images/diagrid-dashboard-workflow.png)
+![Scalar](/images/scalar.png)
+
 ---
 
 ## Run with Aspire & Catalyst
