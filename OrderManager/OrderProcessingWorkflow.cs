@@ -14,7 +14,7 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
     public override async Task<OrderResult> RunAsync(WorkflowContext context, OrderPayload order)
     {
         var retryPolicy = new WorkflowRetryPolicy(
-            maxNumberOfAttempts: 5,
+            maxNumberOfAttempts: 8,
             firstRetryInterval: TimeSpan.FromSeconds(1),
             backoffCoefficient: 2.0,
             maxRetryInterval: TimeSpan.FromSeconds(60)
