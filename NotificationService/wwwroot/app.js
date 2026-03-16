@@ -253,7 +253,14 @@ function addItemRow() {
     itemRow.innerHTML = `
         <div class="form-group">
             <label>Product ID</label>
-            <input type="text" name="productId" placeholder="e.g., prod-001" required>
+            <select name="productId" class="form-select" required>
+                <option value="" disabled selected>Select a product...</option>
+                <option value="prod-001">prod-001</option>
+                <option value="prod-002">prod-002</option>
+                <option value="prod-003">prod-003</option>
+                <option value="prod-004">prod-004</option>
+                <option value="prod-005">prod-005</option>
+            </select>
         </div>
         <div class="form-group">
             <label>Quantity</label>
@@ -328,6 +335,37 @@ async function submitOrderForm(event) {
     }
 }
 
+async function submitOrderFormX10() {
+    const form = document.getElementById('order-form');
+    if (!form.reportValidity()) return;
+
+    const formData = new FormData(form);
+    const customerId = formData.get('customerId');
+    const productIds = formData.getAll('productId');
+    const quantities = formData.getAll('quantity');
+    const prices = formData.getAll('price');
+
+    const items = productIds.map((productId, index) => ({
+        productId: productId,
+        quantity: parseInt(quantities[index]),
+        price: parseFloat(prices[index])
+    }));
+
+    try {
+        await Promise.all(Array.from({ length: 10 }, () =>
+            fetch('/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: null, customerId, items })
+            })
+        ));
+        hideOrderModal();
+    } catch (error) {
+        console.error('Error creating orders:', error);
+        alert('Error creating orders: ' + error.message);
+    }
+}
+
 // Generate unique ID
 function generateId() {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -343,6 +381,7 @@ function setupEventListeners() {
     document.getElementById('cancel-order-btn').addEventListener('click', hideOrderModal);
     document.getElementById('add-item-btn').addEventListener('click', addItemRow);
     document.getElementById('order-form').addEventListener('submit', submitOrderForm);
+    document.getElementById('create-order-x10-btn').addEventListener('click', submitOrderFormX10);
     
     // Close modal on outside click
     document.getElementById('order-modal').addEventListener('click', (e) => {

@@ -96,11 +96,19 @@
 
                 <div class="modal-actions">
                     <button type="button" id="cancel-order-btn" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Order</button>
+                    <div class="btn-group">
+                        <button type="submit" class="btn-group-primary">Create Order</button>
+                        <button type="button" id="create-order-x10-btn" class="btn-group-stat" title="Create 10 orders">×10</button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
+
+    <a class="chaos-mesh-fab" href="http://localhost:2333" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Chaos Mesh
+    </a>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="app.js"></script>
