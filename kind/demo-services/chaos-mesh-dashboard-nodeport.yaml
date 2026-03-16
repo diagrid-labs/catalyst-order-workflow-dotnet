@@ -1,0 +1,22 @@
+# Exposes the Chaos Mesh dashboard on localhost:2333 in kind clusters.
+# The kind-cluster-config.yaml already maps containerPort 2333 -> hostPort 2333.
+#
+# Apply after installing Chaos Mesh:
+#   kubectl apply -f kind/demo-services/chaos-mesh-dashboard-nodeport.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-dashboard-nodeport
+  namespace: chaos-mesh
+  labels:
+    app: chaos-dashboard
+spec:
+  selector:
+    app: chaos-dashboard
+  ports:
+    - name: http
+      port: 2333
+      targetPort: 2333
+      nodePort: 32333
+      protocol: TCP
+  type: NodePort

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-manager
+  namespace: catalyst-order-workflow-demo
+  labels:
+    app: order-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-manager
+  template:
+    metadata:
+      labels:
+        app: order-manager
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "order-manager"
+        dapr.io/app-port: "8080"
+    spec:
+      containers:
+        - name: order-manager
+          # You can use this public image for the demo, or build and push your own
+          image: localhost:5001/order-manager:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-manager
+  namespace: catalyst-order-workflow-demo
+  labels:
+    app: order-manager
+spec:
+  selector:
+    app: order-manager
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chaos-experiment-config
+  namespace: catalyst-order-workflow-demo
+data:
+  experiment.json: |
+    {
+      "apiVersion": "chaos-mesh.org/v1alpha1",
+      "kind": "PodChaos",
+      "metadata": {
+        "name": "killinventory",
+        "namespace": "catalyst-order-workflow-demo"
+      },
+      "spec": {
+        "action": "pod-failure",
+        "mode": "all",
+        "selector": {
+          "namespaces": ["catalyst-order-workflow-demo"],
+          "labelSelectors": {
+            "app": "inventory-service"
+          }
+        }
+      }
+    }

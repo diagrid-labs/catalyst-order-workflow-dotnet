@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: catalyst-order-workflow-demo
+  labels:
+    app: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "notification-service"
+        dapr.io/app-port: "8080"
+    spec:
+      containers:
+        - name: notification-service
+          # You can use this public image for the demo, or build and push your own
+          image: localhost:5001/notification-service:latest
+          imagePullPolicy: Always
+          command: ["dotnet", "NotificationService.dll"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: CHAOS_MESH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: chaos-mesh-account-token
+                  key: token
+          volumeMounts:
+            - name: chaos-experiment
+              mountPath: /etc/chaos
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: chaos-experiment
+          configMap:
+            name: chaos-experiment-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: catalyst-order-workflow-demo
+  labels:
+    app: notification-service
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      nodePort: 30080
+      protocol: TCP
+  type: NodePort

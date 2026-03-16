@@ -1,0 +1,46 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: inventory-store
+  namespace: catalyst-order-workflow-demo
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: redis-master.default.svc.cluster.local:6379
+  - name: redisPassword
+    value: ""
+  - name: actorStateStore
+    value: "false"
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: shop-activity
+  namespace: catalyst-order-workflow-demo
+scopes:
+  - order-manager
+  - inventory-service
+  - notification-service
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: redis-master.default.svc.cluster.local:6379
+  - name: redisPassword
+    value: ""
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: order-notification
+  namespace: catalyst-order-workflow-demo
+spec:
+  pubsubname: shop-activity
+  topic: orders
+  routes:
+    default: /order-notification
+scopes:
+  - notification-service
