@@ -12,7 +12,7 @@ spec:
   - name: redisPassword
     value: ""
   - name: actorStateStore
-    value: "false"
+    value: "true"
 ---
 apiVersion: dapr.io/v1alpha1
 kind: Component

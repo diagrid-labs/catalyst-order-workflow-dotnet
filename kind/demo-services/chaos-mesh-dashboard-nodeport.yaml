@@ -12,7 +12,7 @@ metadata:
     app: chaos-dashboard
 spec:
   selector:
-    app: chaos-dashboard
+    app.kubernetes.io/component: chaos-dashboard
   ports:
     - name: http
       port: 2333
