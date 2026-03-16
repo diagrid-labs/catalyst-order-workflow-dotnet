@@ -9,7 +9,8 @@ DOCKERFILES = OrderManager/Dockerfile InventoryService/Dockerfile NotificationSe
 .PHONY: all build push build-push deploy-kind create-order \
 	build-order-manager build-inventory-service build-notification-service \
 	push-order-manager push-inventory-service push-notification-service \
-	setup kind-create dapr-install redis-install redis-wait chaos-mesh-install chaos-mesh-wait clean clean-deploy
+	setup kind-create dapr-install redis-install redis-wait chaos-mesh-install chaos-mesh-wait clean clean-deploy \
+	redis-flush
 
 NAMESPACE ?= catalyst-order-workflow-demo
 
@@ -94,13 +95,19 @@ redis-wait:
 	kubectl rollout status statefulset/redis-master --timeout=120s -n default
 	@echo "✓ Redis ready"
 
+redis-flush:
+	@echo "Flushing all Redis keys..."
+	kubectl exec -n default statefulset/redis-master -- \
+		sh -c 'redis-cli --scan | xargs -r redis-cli DEL'
+	@echo "✓ Redis flushed"
+
 chaos-mesh-install:
 	@echo "Installing Chaos Mesh..."
 	helm repo add chaos-mesh https://charts.chaos-mesh.org
 	helm repo update chaos-mesh
 	helm install chaos-mesh chaos-mesh/chaos-mesh \
 	-n=chaos-mesh --create-namespace \
-	--set dashboard.service.type=LoadBalancer
+	--set dashboard.service.type=ClusterIP
 	@echo "✓ Chaos Mesh installed"
 
 chaos-mesh-wait:
