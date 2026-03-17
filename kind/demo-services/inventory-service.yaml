@@ -14,25 +14,19 @@ spec:
     metadata:
       labels:
         app: inventory-service
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "inventory-service"
+        dapr.io/app-port: "8080"
     spec:
       containers:
         - name: inventory-service
           # You can use this public image for the demo, or build and push your own
-          image: public.ecr.aws/e9f1v8j5/catalyst-demo/inventory-service:2.9
-          imagePullPolicy: IfNotPresent
+          image: localhost:5001/inventory-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           command: ["dotnet", "Diagrid.Labs.Catalyst.OrderWorkflow.InventoryService.dll"]
-          env:
-            # Ensure the secret 'catalyst-app-tokens' is created with key 'inventory-service' containing the App ID token
-            - name: DAPR_API_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: catalyst-app-tokens
-                  key: inventory-service
-          envFrom:
-            - configMapRef:
-                name: catalyst-env
           livenessProbe:
             httpGet:
               path: /healthz
@@ -50,6 +44,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: inventory-service
+  namespace: catalyst-order-workflow-demo
   labels:
     app: inventory-service
 spec:

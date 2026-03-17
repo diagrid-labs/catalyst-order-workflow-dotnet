@@ -14,34 +14,26 @@ spec:
     metadata:
       labels:
         app: notification-service
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "notification-service"
+        dapr.io/app-port: "8080"
     spec:
       containers:
         - name: notification-service
           # You can use this public image for the demo, or build and push your own
-          image: public.ecr.aws/e9f1v8j5/catalyst-demo/notification-service:2.9
-          imagePullPolicy: IfNotPresent
+          image: localhost:5001/notification-service:latest
+          imagePullPolicy: Always
           command: ["dotnet", "NotificationService.dll"]
           ports:
             - containerPort: 8080
           env:
-            # Ensure the secret 'catalyst-app-tokens' is created with key 'notification-service' containing the App ID token
-            - name: DAPR_API_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: catalyst-app-tokens
-                  key: notification-service
-            # Optional: inject Chaos Mesh token to enable chaos experiments from the UI
             - name: CHAOS_MESH_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: chaos-mesh-account-token
                   key: token
-                  optional: true
-          envFrom:
-            - configMapRef:
-                name: catalyst-env
           volumeMounts:
-            # Optional: mount chaos experiment definition (apply k8s/demo-services/chaos-mesh.yaml to enable)
             - name: chaos-experiment
               mountPath: /etc/chaos
           livenessProbe:
@@ -60,12 +52,12 @@ spec:
         - name: chaos-experiment
           configMap:
             name: chaos-experiment-config
-            optional: true
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: notification-service
+  namespace: catalyst-order-workflow-demo
   labels:
     app: notification-service
 spec:
@@ -75,25 +67,6 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
+      nodePort: 30080
       protocol: TCP
-  type: ClusterIP
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: notification-service-public
-  labels:
-    app: notification-service
-  annotations:
-    service.beta.kubernetes.io/azure-pip-name: "catalyst-demo-public"
-    service.beta.kubernetes.io/azure-load-balancer-resource-group: "demo"
-spec:
-  selector:
-    app: notification-service
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      protocol: TCP
-  type: LoadBalancer
+  type: NodePort

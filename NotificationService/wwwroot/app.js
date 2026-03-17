@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadHistoricalNotifications();
     setupSignalRConnection();
     setupEventListeners();
+    setupHealthPolling();
 });
 
 // Setup SignalR connection for real-time notifications
@@ -366,15 +367,106 @@ async function submitOrderFormX10() {
     }
 }
 
+// Service health polling
+function setupHealthPolling() {
+    async function checkAll() {
+        try {
+            const response = await fetch('/status', { signal: AbortSignal.timeout(5000) });
+            if (response.ok) {
+                const status = await response.json();
+                const dot = document.getElementById('inventory-status');
+                if (dot) dot.className = status.inventoryService === 'running' ? 'status-dot connected' : 'status-dot disconnected';
+
+                // Sync chaos button with server-side experiment state
+                const btn = document.getElementById('chaos-toggle-btn');
+                if (btn && !btn.disabled) {
+                    const serverActive = status.chaosExperimentActive === true;
+                    if (serverActive !== chaosActive) updateChaosUI(serverActive);
+                }
+            }
+        } catch {
+            const dot = document.getElementById('inventory-status');
+            if (dot) dot.className = 'status-dot disconnected';
+        }
+    }
+
+    checkAll();
+    setInterval(checkAll, 5000);
+}
+
 // Generate unique ID
 function generateId() {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+}
+
+// Chaos Mesh toggle
+const CHAOS_SVG_IDLE   = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+const CHAOS_SVG_ACTIVE = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+let chaosActive = false;
+
+function updateChaosUI(active) {
+    chaosActive = active;
+    const btn = document.getElementById('chaos-toggle-btn');
+    const dropdown = document.getElementById('chaos-dropdown');
+    if (btn) {
+        btn.innerHTML = active
+            ? `${CHAOS_SVG_ACTIVE} <span id="chaos-action-label">Stop Experiment</span>`
+            : `${CHAOS_SVG_IDLE} <span id="chaos-action-label">Start Experiment</span>`;
+        btn.classList.toggle('active', active);
+    }
+    if (dropdown) dropdown.classList.toggle('chaos-active', active);
+}
+
+async function toggleChaos() {
+    const btn = document.getElementById('chaos-toggle-btn');
+    btn.disabled = true;
+
+    if (!chaosActive) {
+        try {
+            const response = await fetch('/chaos/start', { method: 'POST' });
+            if (response.ok) {
+                updateChaosUI(true);
+            } else {
+                alert('Failed to start chaos: ' + await response.text());
+            }
+        } catch (err) {
+            alert('Error starting chaos: ' + err.message);
+        }
+    } else {
+        try {
+            const response = await fetch('/chaos/stop', { method: 'DELETE' });
+            if (response.ok) {
+                updateChaosUI(false);
+            } else {
+                alert('Failed to stop chaos: ' + await response.text());
+            }
+        } catch (err) {
+            alert('Error stopping chaos: ' + err.message);
+        }
+    }
+
+    btn.disabled = false;
 }
 
 // Setup event listeners
 function setupEventListeners() {
     document.getElementById('clear-btn').addEventListener('click', clearNotifications);
     document.getElementById('create-order-btn').addEventListener('click', showOrderModal);
+    document.getElementById('chaos-toggle-btn').addEventListener('click', toggleChaos);
+
+    // Chaos dropdown open/close
+    const arrow = document.getElementById('chaos-dropdown-arrow');
+    const menu = document.getElementById('chaos-dropdown-menu');
+    arrow.addEventListener('click', () => {
+        const open = menu.classList.toggle('open');
+        arrow.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('chaos-dropdown').contains(e.target)) {
+            menu.classList.remove('open');
+            arrow.setAttribute('aria-expanded', 'false');
+        }
+    });
     
     // Modal event listeners
     document.getElementById('close-modal-btn').addEventListener('click', hideOrderModal);
