@@ -4,7 +4,7 @@ metadata:
   name: chaos-experiment-config
   namespace: catalyst-order-workflow-demo
 data:
-  experiment.json: |
+  experiment-inventory-service.json: |
     {
       "apiVersion": "chaos-mesh.org/v1alpha1",
       "kind": "PodChaos",
@@ -19,6 +19,25 @@ data:
           "namespaces": ["catalyst-order-workflow-demo"],
           "labelSelectors": {
             "app": "inventory-service"
+          }
+        }
+      }
+    }
+  experiment-order-manager.json: |
+    {
+      "apiVersion": "chaos-mesh.org/v1alpha1",
+      "kind": "PodChaos",
+      "metadata": {
+        "name": "killordermanager",
+        "namespace": "catalyst-order-workflow-demo"
+      },
+      "spec": {
+        "action": "pod-failure",
+        "mode": "all",
+        "selector": {
+          "namespaces": ["catalyst-order-workflow-demo"],
+          "labelSelectors": {
+            "app": "order-manager"
           }
         }
       }
