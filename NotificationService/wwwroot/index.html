@@ -124,12 +124,22 @@
             <div class="chaos-dropdown-divider"></div>
             <button id="chaos-toggle-btn" class="chaos-dropdown-item">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                <span id="chaos-action-label">Start Experiment</span>
+                <span id="chaos-action-label">Start service failure</span>
+            </button>
+            <div class="chaos-dropdown-divider"></div>
+            <div class="chaos-service-row">
+                <span id="order-manager-status" class="status-dot disconnected"></span>
+                <span class="chaos-service-label">Order Manager</span>
+            </div>
+            <div class="chaos-dropdown-divider"></div>
+            <button id="chaos-order-manager-toggle-btn" class="chaos-dropdown-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                <span id="chaos-order-manager-action-label">Start service failure</span>
             </button>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-    <script src="app.js?v=2.11"></script>
+    <script src="app.js?v=2.13"></script>
 </body>
 </html>

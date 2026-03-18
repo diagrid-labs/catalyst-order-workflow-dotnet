@@ -412,11 +412,21 @@ function setupHealthPolling() {
                     if (link) link.href = status.chaosMeshDashboardUrl;
                 }
 
-                // Sync chaos button with server-side experiment state
-                const btn = document.getElementById('chaos-toggle-btn');
-                if (btn && !btn.disabled) {
-                    const serverActive = status.chaosExperimentActive === true;
+                // Sync order-manager status dot
+                const orderManagerDot = document.getElementById('order-manager-status');
+                if (orderManagerDot) orderManagerDot.className = status.orderManager === 'running' ? 'status-dot connected' : 'status-dot disconnected';
+
+                // Sync chaos buttons with server-side experiment state
+                const chaosActive_ = status.chaosActive ?? {};
+                const inventoryBtn = document.getElementById('chaos-toggle-btn');
+                if (inventoryBtn && !inventoryBtn.disabled) {
+                    const serverActive = chaosActive_['inventory-service'] === true;
                     if (serverActive !== chaosActive) updateChaosUI(serverActive);
+                }
+                const orderManagerBtn = document.getElementById('chaos-order-manager-toggle-btn');
+                if (orderManagerBtn && !orderManagerBtn.disabled) {
+                    const serverActive = chaosActive_['order-manager'] === true;
+                    if (serverActive !== chaosOrderManagerActive) updateChaosOrderManagerUI(serverActive);
                 }
             }
         } catch {
@@ -438,6 +448,7 @@ function generateId() {
 const CHAOS_SVG_IDLE   = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
 const CHAOS_SVG_ACTIVE = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
 let chaosActive = false;
+let chaosOrderManagerActive = false;
 
 function updateChaosUI(active) {
     chaosActive = active;
@@ -445,11 +456,22 @@ function updateChaosUI(active) {
     const dropdown = document.getElementById('chaos-dropdown');
     if (btn) {
         btn.innerHTML = active
-            ? `${CHAOS_SVG_ACTIVE} <span id="chaos-action-label">Stop Experiment</span>`
-            : `${CHAOS_SVG_IDLE} <span id="chaos-action-label">Start Experiment</span>`;
+            ? `${CHAOS_SVG_ACTIVE} <span id="chaos-action-label">Stop service failure</span>`
+            : `${CHAOS_SVG_IDLE} <span id="chaos-action-label">Start service failure</span>`;
         btn.classList.toggle('active', active);
     }
     if (dropdown) dropdown.classList.toggle('chaos-active', active);
+}
+
+function updateChaosOrderManagerUI(active) {
+    chaosOrderManagerActive = active;
+    const btn = document.getElementById('chaos-order-manager-toggle-btn');
+    if (btn) {
+        btn.innerHTML = active
+            ? `${CHAOS_SVG_ACTIVE} <span id="chaos-order-manager-action-label">Stop service failure</span>`
+            : `${CHAOS_SVG_IDLE} <span id="chaos-order-manager-action-label">Start service failure</span>`;
+        btn.classList.toggle('active', active);
+    }
 }
 
 async function toggleChaos() {
@@ -458,7 +480,7 @@ async function toggleChaos() {
 
     if (!chaosActive) {
         try {
-            const response = await fetch('/chaos/start', { method: 'POST' });
+            const response = await fetch('/chaos/inventory-service/start', { method: 'POST' });
             if (response.ok) {
                 updateChaosUI(true);
             } else {
@@ -469,9 +491,40 @@ async function toggleChaos() {
         }
     } else {
         try {
-            const response = await fetch('/chaos/stop', { method: 'DELETE' });
+            const response = await fetch('/chaos/inventory-service', { method: 'DELETE' });
             if (response.ok) {
                 updateChaosUI(false);
+            } else {
+                alert('Failed to stop chaos: ' + await response.text());
+            }
+        } catch (err) {
+            alert('Error stopping chaos: ' + err.message);
+        }
+    }
+
+    btn.disabled = false;
+}
+
+async function toggleChaosOrderManager() {
+    const btn = document.getElementById('chaos-order-manager-toggle-btn');
+    btn.disabled = true;
+
+    if (!chaosOrderManagerActive) {
+        try {
+            const response = await fetch('/chaos/order-manager/start', { method: 'POST' });
+            if (response.ok) {
+                updateChaosOrderManagerUI(true);
+            } else {
+                alert('Failed to start chaos: ' + await response.text());
+            }
+        } catch (err) {
+            alert('Error starting chaos: ' + err.message);
+        }
+    } else {
+        try {
+            const response = await fetch('/chaos/order-manager', { method: 'DELETE' });
+            if (response.ok) {
+                updateChaosOrderManagerUI(false);
             } else {
                 alert('Failed to stop chaos: ' + await response.text());
             }
@@ -488,6 +541,7 @@ function setupEventListeners() {
     document.getElementById('clear-btn').addEventListener('click', clearNotifications);
     document.getElementById('create-order-btn').addEventListener('click', showOrderModal);
     document.getElementById('chaos-toggle-btn').addEventListener('click', toggleChaos);
+    document.getElementById('chaos-order-manager-toggle-btn').addEventListener('click', toggleChaosOrderManager);
 
     // Chaos dropdown open/close
     const arrow = document.getElementById('chaos-dropdown-arrow');
