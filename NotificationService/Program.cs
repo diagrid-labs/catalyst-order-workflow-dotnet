@@ -30,7 +30,7 @@ builder.Services.AddDaprClient((daprBuilder) =>
 builder.Services.AddHttpClient("chaos-mesh", (sp, client) =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
-    var baseUrl = config["ChaosMesh:BaseUrl"] ?? "http://chaos-dashboard.chaos-mesh.svc.cluster.local:2333";
+    var baseUrl = config["ChaosMesh:BaseUrl"] ?? "http://chaos-dashboard.chaos-mesh.svc.cluster.local";
     client.BaseAddress = new Uri(baseUrl);
 });
 

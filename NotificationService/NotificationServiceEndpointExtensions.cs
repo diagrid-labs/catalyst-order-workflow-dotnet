@@ -12,7 +12,7 @@ public static class NotificationServiceEndpointExtensions
 {
     private static readonly List<NotificationViewModel> NotificationHistory = new();
     private static readonly object LockObject = new();
-    private static string? _chaosExperimentUid;
+    private static readonly Dictionary<string, string?> _chaosExperimentUids = new();
 
     public static void MapNotificationServiceEndpoints(this IEndpointRouteBuilder app)
     {
@@ -85,16 +85,19 @@ public static class NotificationServiceEndpointExtensions
             var inventoryStatus    = await CheckHealth(httpClientFactory.CreateClient("inventory-service"));
             var orderManagerStatus = await CheckHealth(httpClientFactory.CreateClient("order-manager"));
 
-            // Check if an inventory chaos experiment is active
-            if (string.IsNullOrEmpty(_chaosExperimentUid))
+            // Check active state for each known service experiment (lazy lookup)
+            var token = config["CHAOS_MESH_TOKEN"];
+            if (!string.IsNullOrEmpty(token))
             {
-                var token = config["CHAOS_MESH_TOKEN"];
-                if (!string.IsNullOrEmpty(token))
+                string[] trackedServices = ["inventory-service", "order-manager"];
+                foreach (var svc in trackedServices)
                 {
+                    if (!string.IsNullOrEmpty(_chaosExperimentUids.GetValueOrDefault(svc))) continue;
+
                     try
                     {
-                        var experimentPath = config["ChaosExperiment:Path"] ?? "/etc/chaos/experiment.json";
-                        string expName = "killinventory", expKind = "PodChaos";
+                        var experimentPath = $"/etc/chaos/experiment-{svc}.json";
+                        string expName = $"kill{svc.Replace("-", "")}", expKind = "PodChaos";
                         if (File.Exists(experimentPath))
                         {
                             using var expDoc = JsonDocument.Parse(await File.ReadAllTextAsync(experimentPath));
@@ -114,25 +117,36 @@ public static class NotificationServiceEndpointExtensions
                         {
                             if (item.TryGetProperty("name", out var name) && name.GetString() == expName)
                             {
-                                _chaosExperimentUid = item.TryGetProperty("uid", out var uid) ? uid.GetString() : null;
+                                _chaosExperimentUids[svc] = item.TryGetProperty("uid", out var uid) ? uid.GetString() : null;
                                 break;
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Could not check chaos experiment status: {ex.Message}");
+                        Console.WriteLine($"Could not check chaos experiment status for {svc}: {ex.Message}");
                     }
                 }
             }
 
+            var chaosActiveStatus = new Dictionary<string, bool>();
+            try
+            {
+                chaosActiveStatus["inventory-service"] = !string.IsNullOrEmpty(_chaosExperimentUids.GetValueOrDefault("inventory-service"));
+                chaosActiveStatus["order-manager"]     = !string.IsNullOrEmpty(_chaosExperimentUids.GetValueOrDefault("order-manager"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not build chaos active status: {ex.Message}");
+            }
+
             return Results.Ok(new
             {
-                notificationService    = "running",
-                inventoryService       = inventoryStatus,
-                orderManager           = orderManagerStatus,
-                chaosExperimentActive  = !string.IsNullOrEmpty(_chaosExperimentUid),
-                chaosMeshDashboardUrl  = config["ChaosMesh:DashboardUrl"] ?? "http://localhost:2333",
+                notificationService   = "running",
+                inventoryService      = inventoryStatus,
+                orderManager          = orderManagerStatus,
+                chaosActive           = chaosActiveStatus,
+                chaosMeshDashboardUrl = config["ChaosMesh:DashboardUrl"] ?? "http://localhost:2333",
             });
         })
         .WithName("GetStatus")
@@ -179,8 +193,8 @@ public static class NotificationServiceEndpointExtensions
         .WithName("CreateOrder")
         .WithOpenApi();
 
-        // Start inventory chaos experiment
-        app.MapPost("/chaos/start", async (IHttpClientFactory httpClientFactory, IConfiguration config) =>
+        // Start chaos experiment for a service
+        app.MapPost("/chaos/{service}/start", async (string service, IHttpClientFactory httpClientFactory, IConfiguration config) =>
         {
             var token = config["CHAOS_MESH_TOKEN"];
             if (string.IsNullOrEmpty(token))
@@ -189,7 +203,7 @@ public static class NotificationServiceEndpointExtensions
                 return Results.Problem(detail: "CHAOS_MESH_TOKEN is not configured", statusCode: 500, title: "Chaos Mesh token missing");
             }
 
-            var experimentPath = config["ChaosExperiment:Path"] ?? "/etc/chaos/experiment.json";
+            var experimentPath = $"/etc/chaos/experiment-{service}.json";
             if (!File.Exists(experimentPath))
                 return Results.Problem(detail: $"Experiment file not found: {experimentPath}", statusCode: 500, title: "Chaos experiment not configured");
 
@@ -209,36 +223,36 @@ public static class NotificationServiceEndpointExtensions
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"Chaos Mesh start failed: {response.StatusCode} {body}");
+                    Console.WriteLine($"Chaos Mesh start failed for {service}: {response.StatusCode} {body}");
                     return Results.Problem(detail: body, statusCode: (int)response.StatusCode, title: "Failed to start chaos experiment");
                 }
 
                 var result = JsonSerializer.Deserialize<ChaosMeshExperimentResult>(body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                _chaosExperimentUid = result?.Uid;
-                Console.WriteLine($"Chaos experiment started - UID: {_chaosExperimentUid}");
+                _chaosExperimentUids[service] = result?.Uid;
+                Console.WriteLine($"Chaos experiment started for {service} - UID: {_chaosExperimentUids[service]}");
                 return Results.Ok(result);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting chaos experiment: {ex.Message}");
+                Console.WriteLine($"Error starting chaos experiment for {service}: {ex.Message}");
                 return Results.Problem(detail: ex.Message, statusCode: 500, title: "Error starting chaos experiment");
             }
         })
         .WithName("StartChaos")
         .WithOpenApi();
 
-        // Stop (delete) inventory chaos experiment
-        app.MapDelete("/chaos/stop", async (IHttpClientFactory httpClientFactory, IConfiguration config) =>
+        // Stop (delete) chaos experiment for a service
+        app.MapDelete("/chaos/{service}", async (string service, IHttpClientFactory httpClientFactory, IConfiguration config) =>
         {
             var token = config["CHAOS_MESH_TOKEN"];
             if (string.IsNullOrEmpty(token))
                 return Results.Problem(detail: "CHAOS_MESH_TOKEN is not configured", statusCode: 500, title: "Chaos Mesh token missing");
 
             // Resolve UID: use cached value or look it up by name from the experiment file
-            if (string.IsNullOrEmpty(_chaosExperimentUid))
+            if (string.IsNullOrEmpty(_chaosExperimentUids.GetValueOrDefault(service)))
             {
-                var experimentPath = config["ChaosExperiment:Path"] ?? "/etc/chaos/experiment.json";
-                string expName = "killinventory", expKind = "PodChaos";
+                var experimentPath = $"/etc/chaos/experiment-{service}.json";
+                string expName = $"kill{service.Replace("-", "")}", expKind = "PodChaos";
                 if (File.Exists(experimentPath))
                 {
                     using var expDoc = JsonDocument.Parse(await File.ReadAllTextAsync(experimentPath));
@@ -257,20 +271,21 @@ public static class NotificationServiceEndpointExtensions
                 {
                     if (item.TryGetProperty("name", out var name) && name.GetString() == expName)
                     {
-                        _chaosExperimentUid = item.TryGetProperty("uid", out var uid) ? uid.GetString() : null;
+                        _chaosExperimentUids[service] = item.TryGetProperty("uid", out var uidProp) ? uidProp.GetString() : null;
                         break;
                     }
                 }
             }
 
-            if (string.IsNullOrEmpty(_chaosExperimentUid))
+            if (string.IsNullOrEmpty(_chaosExperimentUids.GetValueOrDefault(service)))
             {
-                Console.WriteLine("Chaos experiment not found");
-                return Results.NotFound("No active chaos experiment found");
+                Console.WriteLine($"Chaos experiment not found for {service}");
+                return Results.NotFound($"No active chaos experiment found for {service}");
             }
 
+            var uid = _chaosExperimentUids[service];
             var client = httpClientFactory.CreateClient("chaos-mesh");
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/experiments/{_chaosExperimentUid}");
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/experiments/{uid}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             try
@@ -279,17 +294,17 @@ public static class NotificationServiceEndpointExtensions
                 if (!response.IsSuccessStatusCode)
                 {
                     var body = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Chaos Mesh stop failed: {response.StatusCode} {body}");
+                    Console.WriteLine($"Chaos Mesh stop failed for {service}: {response.StatusCode} {body}");
                     return Results.Problem(detail: body, statusCode: (int)response.StatusCode, title: "Failed to stop chaos experiment");
                 }
 
-                Console.WriteLine($"Chaos experiment stopped - UID: {_chaosExperimentUid}");
-                _chaosExperimentUid = null;
+                Console.WriteLine($"Chaos experiment stopped for {service} - UID: {uid}");
+                _chaosExperimentUids[service] = null;
                 return Results.Ok();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error stopping chaos experiment: {ex.Message}");
+                Console.WriteLine($"Error stopping chaos experiment for {service}: {ex.Message}");
                 return Results.Problem(detail: ex.Message, statusCode: 500, title: "Error stopping chaos experiment");
             }
         })
