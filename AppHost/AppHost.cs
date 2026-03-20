@@ -12,8 +12,11 @@ var orderManager = builder.AddProject<OrderManager>("order-manager");
 var inventoryService = builder.AddProject<InventoryService>("inventory-service");
 var notificationService = builder.AddProject<NotificationService>("notification-service");
 
+
+//
 // note: This extension method further configures the services to run against Catalyst
 if (useCatalyst) builder.ConfigureForCatalyst(orderManager, inventoryService, notificationService);
+//
 // note: This extension method further configures the services to run locally with Dapr sidecar processes
 else builder.ConfigureForLocal(orderManager, inventoryService, notificationService);
 

@@ -66,7 +66,12 @@ public static class AppHostExtensions
         ;
     }
 
-    public static void ConfigureForCatalyst(this IDistributedApplicationBuilder builder, IResourceBuilder<ProjectResource> orderManager, IResourceBuilder<ProjectResource> inventoryService, IResourceBuilder<ProjectResource> notificationService)
+    public static void ConfigureForCatalyst(
+        this IDistributedApplicationBuilder builder,
+        IResourceBuilder<ProjectResource> orderManager,         // Order manager service from AppHost.cs
+        IResourceBuilder<ProjectResource> inventoryService,     // Inventory service from AppHost.cs
+        IResourceBuilder<ProjectResource> notificationService   // Notification service from AppHost.cs
+    )
     {
         builder
             .AddCatalystProject("order-workflow", new()
