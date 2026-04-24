@@ -64,6 +64,7 @@ public static class AppHostExtensions
             .WithHttpEndpoint(targetPort: 8080)
             .WithReference(cache)
             .WaitFor(cache)
+            .WithContainerRuntimeArgs("--restart", "on-failure:3")
         ;
     }
 
