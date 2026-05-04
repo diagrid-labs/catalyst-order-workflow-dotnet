@@ -9,7 +9,7 @@ spec:
   version: v1
   metadata:
     - name: redisHost
-      value: "cache:16379"
+      value: "cache:6379"
     - name: redisPassword
       value: "zxczxc123"
     - name: actorStateStore
