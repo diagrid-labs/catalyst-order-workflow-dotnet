@@ -165,8 +165,17 @@ public static class InventoryServiceEndpointExtensions
                 Console.WriteLine($"Order {notification.OrderId} completed");
                 break;
 
+            case "picked_up":
+                Console.WriteLine($"Order {notification.OrderId} picked up");
+                break;
+
+            case "out_for_delivery":
+                Console.WriteLine($"Order {notification.OrderId} out for delivery");
+                break;
+
             default:
-                throw new($"Unknown order status: {notification.Status}");
+                Console.WriteLine($"Unhandled order status: {notification.Status}");
+                break;
         }
 
         return TypedResults.NoContent();

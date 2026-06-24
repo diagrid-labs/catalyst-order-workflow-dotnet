@@ -1,5 +1,5 @@
 @dapr_port=6003
-@app-port=8081
+@app-port=8083
 @inventory-port=8082
 @notification-port=8083
 @product-id=prod-002

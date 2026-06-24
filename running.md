@@ -109,7 +109,7 @@ diagrid login
 2. Use the Diagrid CLI to launch the project on Catalyst
 
 ```bash
-diagrid dev run --file dapr.yaml --project order-manager-workflow
+diagrid dev run --file dapr.yaml --project order-manager-workflow-local
 ```
 
 3. Import the [subscription.yaml](components/catalyst/subscription.yaml) file into Catalyst subscriptions: https://catalyst.r1.diagrid.io/subscriptions.
