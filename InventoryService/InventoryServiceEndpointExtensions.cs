@@ -165,6 +165,10 @@ public static class InventoryServiceEndpointExtensions
                 Console.WriteLine($"Order {notification.OrderId} completed");
                 break;
 
+            case "label_created":
+                Console.WriteLine($"Order {notification.OrderId} label created");
+                break;
+
             case "picked_up":
                 Console.WriteLine($"Order {notification.OrderId} picked up");
                 break;

@@ -6,6 +6,8 @@
 # dotenv files
 .env
 
+
+
 # User-specific files
 *.rsuser
 *.suo
@@ -67,6 +69,9 @@ artifacts/
 
 # Tye
 .tye/
+.aspire/
+
+.github/
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
