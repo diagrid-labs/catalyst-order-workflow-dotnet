@@ -109,8 +109,15 @@ diagrid login
 2. Use the Diagrid CLI to launch the project on Catalyst
 
 ```bash
-diagrid dev run --file dapr.yaml --project order-manager-workflow
+diagrid dev run --file dapr.yaml --project <your-project>
 ```
+
+> **Do not point this at the shared `order-workflow` project.** That project backs the hosted
+> demo at https://catalyst-demo.diagrid.us/. A dev session reuses its three existing App IDs
+> and rewrites the shared `inventory-store` and `shop-activity` components, so while your
+> session runs the public demo points at your laptop and is broken for everyone else. Create
+> your own project first with `diagrid project create`, and check what a run would touch with
+> `diagrid dev run --file dapr.yaml --project <your-project> --dry-run`.
 
 3. Import the [subscription.yaml](components/catalyst/subscription.yaml) file into Catalyst subscriptions: https://catalyst.r1.diagrid.io/subscriptions.
 
@@ -128,19 +135,22 @@ diagrid dev stop -f dapr.yaml
 
 Use these after starting the app locally (Aspire or Dapr CLI).
 
-1. Initialize demo inventory:
+Inventory is seeded automatically when `inventory-service` starts, so there is normally
+nothing to initialize. To reseed it mid-session, call the inventory service directly on port
+**8082** (this route is on `inventory-service`, not `order-manager`):
 
 ```bash
-curl -X POST http://localhost:8081/inventory/initialize
+curl -X POST http://localhost:8082/inventory/initialize
 ```
 
-2. Start an order workflow:
+1. Start an order workflow. The response includes the `orderId`:
 
 ```bash
-curl -X POST http://localhost:8081/orders/process \
+curl -X POST http://localhost:8081/order \
   -H "Content-Type: application/json" \
   -d '{
-    "customerId": "cust-001",
+    "orderId": null,
+    "customerId": "Alice",
     "items": [
       {"productId": "prod-001", "quantity": 2, "price": 29.99},
       {"productId": "prod-002", "quantity": 1, "price": 49.99}
@@ -148,21 +158,27 @@ curl -X POST http://localhost:8081/orders/process \
   }'
 ```
 
-3. Check workflow status (replace `{orderId}`):
+2. Check the order (replace `{orderId}`):
 
 ```bash
-curl http://localhost:8081/orders/{orderId}/status
+curl http://localhost:8081/order/{orderId}
 ```
 
-4. Check inventory via service invocation:
+3. Check inventory for a single product:
 
 ```bash
-curl -X POST http://localhost:8081/orders/check-inventory \
+curl http://localhost:8081/inventory/prod-001
+```
+
+4. Search inventory via service invocation to `inventory-service`:
+
+```bash
+curl -X POST http://localhost:8081/inventory/search \
   -H "Content-Type: application/json" \
   -d '{
     "items": [
-      {"productId": "prod-001"},
-      {"productId": "prod-002"}
+      {"productId": "prod-001", "quantity": 2},
+      {"productId": "prod-002", "quantity": 1}
     ]
   }'
 ```
