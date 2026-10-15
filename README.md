@@ -1,6 +1,6 @@
 # Catalyst E-Commerce Demo
 
-![Architecture Diagram](/images/architecture.png)
+![Architecture Diagram](/images/Catalyst-Order-Workflow.png)
 
 This demo application showcases workflows and local development with Dapr using an e-commerce scenario. The scenario consists of three microservices:
 

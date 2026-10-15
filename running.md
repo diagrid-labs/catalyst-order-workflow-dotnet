@@ -74,27 +74,35 @@ dotnet run --profile http-local-catalyst
 
 You can also run the services locally using the Dapr CLI.
 
-1. Run the inventory service
+1. Use the multi-app run file with the following command
+
+```bash
+dapr run -f dapr.yaml
+```
+
+2. Otherwise, run the services individually.
+
+- Run the inventory service
 
 ```bash
 dapr run --app-id inventory-service --app-port 8082 --dapr-http-port 6002 --resources-path ../components -- dotnet run --project InventoryService.csproj
 ```
 
-2. Run the order manager workflow:
+- Run the order manager workflow:
 
 ```bash
 dapr run --app-id order-manager --app-port 8081 --dapr-http-port 6003 --resources-path ../components -- dotnet run --project OrderManager.csproj
 ```
 
-3. Run the notification service with web UI:
+- Run the notification service with web UI:
 
 ```bash
 dapr run --app-id notification-service --app-port 8083 --dapr-http-port 6004 --resources-path ../components -- dotnet run --project NotificationService.csproj
 ```
 
-4. Open the Notification Dashboard in your browser at `http://localhost:8083` to see real-time notifications
+3. Open the Notification Dashboard in your browser at `http://localhost:8083` to see real-time notifications
 
-5. Start a new order workflow using the VSCode Extension REST Client Extension using the [endpoints.http](./endpoints.http) file or curl commands
+4. Start a new order workflow using the VSCode Extension REST Client Extension using the [endpoints.http](./endpoints.http) file or curl commands
 
 ---
 
