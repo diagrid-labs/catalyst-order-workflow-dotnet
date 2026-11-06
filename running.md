@@ -12,7 +12,7 @@ This solution runs via a dotnet Aspire AppHost.  Aspire takes care of launching 
 
 Running Aspire projects is familiar and can be done via CLI or within your favourite IDE. The AppHost project is configured with two run profiles in `launchSettings.json`.
   - **Local** - `http-local` - Run everything on your workstation, using local Dapr instances for all Dapr functionality.
-  - **Catalyst** - `http-local-catalyst` - Run the services locally on your workstation, connecting to Catalyst for all Dapr functionality.
+  - **Diagrid** - `http-local-catalyst` - Run the services locally on your workstation, connecting to Diagrid for all Dapr functionality.
 
 1. Install the three prerequisites above
 2. Run `dapr init` to initialize Dapr locally
@@ -36,19 +36,19 @@ When running locally, you can use these tools:
 
 ---
 
-## Run with Aspire & Catalyst
+## Run with Aspire & Diagrid
 
 An alternative run profile provided as this project allows you to run services locally while also connecting to
-live Catalyst resources. This scenario communicates from your laptop to Diagrids Catalyst services, instead of running
+live Diagrid resources. This scenario communicates from your laptop to Diagrid services, instead of running
 the Dapr sidecars locally.
 
-Running with the Diagrid Catalyst profile has the following prerequisites:
+Running with the Diagrid profile has the following prerequisites:
 
-- [Diagrid CLI](https://docs.diagrid.io/catalyst/references/cli-reference/intro)
+- [Diagrid CLI](https://docs.diagrid.io/references/diagrid/diagrid-cli-intro/)
 - A diagrid Account, visit [catalyst.diagrid.io](https://catalyst.diagrid.io)
 - [.NET SDK](https://dotnet.microsoft.com/en-us)
 
-Before running the project, grab the values for your Catalyst project and apps, and run the following commands in
+Before running the project, grab the values for your Diagrid project and apps, and run the following commands in
 the `AppHost` project directory, substituting the values as appropriate:
 
 ```bash
@@ -106,23 +106,23 @@ dapr run --app-id notification-service --app-port 8083 --dapr-http-port 6004 --r
 
 ---
 
-## Run with the Diagrid CLI and Catalyst
+## Run on Diagrid with the Diagrid CLI
 
-1. Login to your Diagrid Catalyst account. Ensure you are logged into the correct organization and project.
+1. Login to your Diagrid account. Ensure you are logged into the correct organization and project.
 
 ```bash
 diagrid login
 ```
 
-2. Use the Diagrid CLI to launch the project on Catalyst
+2. Use the Diagrid CLI to launch the project on Diagrid
 
 ```bash
 diagrid dev run --file dapr.yaml --project order-manager-workflow
 ```
 
-3. Import the [subscription.yaml](components/catalyst/subscription.yaml) file into Catalyst subscriptions: https://catalyst.r1.diagrid.io/subscriptions.
+3. Import the [subscription.yaml](components/catalyst/subscription.yaml) file into Diagrid subscriptions: https://catalyst.r1.diagrid.io/subscriptions.
 
-4. Navigate to the Catalyst UI and kick off an order in the UI [http://localhost:8083/](http://localhost:8083/) to see the workflow running.
+4. Navigate to the Diagrid Console and kick off an order in the UI [http://localhost:8083/](http://localhost:8083/) to see the workflow running.
 
 5. Run the following to stop the dev tunnels:
 

@@ -1,4 +1,4 @@
-# Catalyst E-Commerce Demo
+# Diagrid E-Commerce Demo
 
 ![Architecture Diagram](/images/Catalyst-Order-Workflow.png)
 
@@ -42,7 +42,7 @@ Then open `http://localhost:8084` and sign in with user `admin` and the password
 ## Technologies Used
 
 - [Dapr](https://dapr.io/)
-- [Diagrid Catalyst](https://www.diagrid.io/catalyst)
+- [Diagrid](https://www.diagrid.io/catalyst)
 - [.NET and Aspire](https://learn.microsoft.com/dotnet/aspire/get-started/aspire-overview)
 
 ## Required Environment Variables
@@ -55,7 +55,7 @@ These Dapr environment variables are required by the services:
 - `DAPR_HTTP_ENDPOINT`
 - `DAPR_GRPC_ENDPOINT`
 
-For local Aspire runs, these are set automatically. For Catalyst-backed runs/deployments, provide values from your Catalyst project and App IDs.
+For local Aspire runs, these are set automatically. For Diagrid-backed runs/deployments, provide values from your Diagrid project and App IDs.
 
 ## Notification UI
 
