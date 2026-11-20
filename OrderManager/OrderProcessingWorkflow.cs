@@ -23,11 +23,15 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
 
         var orderId = order.OrderId;
 
+        context.SetCustomStatus(new OrderProgress("created", "Order received"));
+
         await context.CallActivityAsync(
             nameof(SendNotificationActivity),
             new NotificationRequest(orderId, "created", $"Order {orderId} has been created and is being processed"),
             activityOptions
         );
+
+        context.SetCustomStatus(new OrderProgress("validating", "Validating order details"));
 
         var validationResult = await context.CallActivityAsync<ValidationResult>(
             nameof(ValidateOrderActivity),
@@ -37,6 +41,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
 
         if (! validationResult.IsValid)
         {
+            context.SetCustomStatus(new OrderProgress("validation_failed", validationResult.Reason));
+
             await context.CallActivityAsync(
                 nameof(SendNotificationActivity),
                 new NotificationRequest(orderId, "failed", $"Order {orderId} validation failed: {validationResult.Reason}"),
@@ -45,6 +51,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
 
             return new(false, $"Order validation failed: {validationResult.Reason}");
         }
+
+        context.SetCustomStatus(new OrderProgress("processing_payment", "Charging customer"));
 
         // Payment gets a shorter retry policy so the failed-workflow demo reaches FAILED in ~10s.
         var paymentOptions = new WorkflowTaskOptions(new WorkflowRetryPolicy(
@@ -65,6 +73,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
         }
         catch (WorkflowTaskFailedException ex)
         {
+            context.SetCustomStatus(new OrderProgress("payment_failed", "Payment service unavailable after retries"));
+
             // Retries exhausted: tell the customer, then rethrow so the workflow ends as FAILED.
             await context.CallActivityAsync(
                 nameof(SendNotificationActivity),
@@ -77,6 +87,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
 
         if (! paymentResult.Success)
         {
+            context.SetCustomStatus(new OrderProgress("payment_declined", paymentResult.Reason));
+
             await context.CallActivityAsync(
                 nameof(SendNotificationActivity),
                 new NotificationRequest(orderId, "failed", $"Order {orderId} payment failed: {paymentResult.Reason}"),
@@ -85,6 +97,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
 
             return new(false, $"Payment processing failed: {paymentResult.Reason}");
         }
+
+        context.SetCustomStatus(new OrderProgress("payment_processed", "Payment accepted, starting campaign"));
 
         var paymentNotificationActivity = context.CallActivityAsync(
             nameof(SendNotificationActivity),
@@ -101,6 +115,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             paymentNotificationActivity,
             subscribeToCampaignActivity,
         ]);
+
+        context.SetCustomStatus(new OrderProgress("checking_inventory", "Checking stock for requested items"));
 
         var inventoryCheckRequest = new InventoryCheckRequest
         {
@@ -123,6 +139,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             );
         }
 
+        context.SetCustomStatus(new OrderProgress("reserving_inventory", "Reserving stock"));
+
         var inventoryResult = await context.CallActivityAsync<InventoryUpdateResult>(
             nameof(UpdateInventoryActivity),
             new InventoryUpdateRequest(orderId, order.Items, "reserve"),
@@ -131,6 +149,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
 
         if (! inventoryResult.Success)
         {
+            context.SetCustomStatus(new OrderProgress("inventory_failed", inventoryResult.Reason));
+
             await context.CallActivityAsync(
                 nameof(SendNotificationActivity),
                 new NotificationRequest(orderId, "failed", $"Order {orderId} inventory update failed: {inventoryResult.Reason}"),
@@ -146,10 +166,14 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             activityOptions
         );
 
+        context.SetCustomStatus(new OrderProgress("shipping", "Handed to shipping workflow"));
+
         await context.CallChildWorkflowAsync<ShippingWorkflowOutput>(nameof(ShippingWorkflow), new ShippingWorkflowInput
         {
             OrderId = orderId,
         });
+
+        context.SetCustomStatus(new OrderProgress("awaiting_feedback", "Waiting for customer feedback"));
 
         // note: This demonstrates the importance of keeping any volatile state inside activities.
         var delay = await context.CallActivityAsync<int>(nameof(CustomerFeedbackDelay), true, activityOptions);
@@ -162,6 +186,8 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             new NotificationRequest(orderId, "feedback", $"Order {orderId} received customer feedback!"),
             activityOptions
         );
+
+        context.SetCustomStatus(new OrderProgress("completed", "Order processed successfully"));
 
         Console.WriteLine($"Order processing completed successfully for Order ID: {orderId}");
 
