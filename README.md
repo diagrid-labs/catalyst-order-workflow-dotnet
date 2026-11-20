@@ -92,6 +92,10 @@ The `OrderProcessingWorkflow` runs this sequence:
 - Payment failure sends `failed` and ends workflow.
 - Inventory update failure sends `failed` and ends workflow.
 
+### Failed workflow scenario
+
+Create an order with customer ID `fail-payment` (in the UI form, or `endpoints.http`). The payment activity throws as if the gateway is down, Dapr retries it 4 times (1s, 2s, 4s backoff), then the workflow sends a `failed` notification and ends with runtime status `FAILED` (unlike the handled failures above, which complete normally). Inspect, pause or rerun it from the Catalyst workflow view.
+
 ### Shipping delay
 
 The demo intentionally includes a **40-second shipping delay** between `shipped` and `delivered` using a workflow timer. This is why notifications appear in sequence with a noticeable pause before delivery/completion.

@@ -46,11 +46,34 @@ public class OrderProcessingWorkflow : Workflow<OrderPayload, OrderResult>
             return new(false, $"Order validation failed: {validationResult.Reason}");
         }
 
-        var paymentResult = await context.CallActivityAsync<PaymentResult>(
-            nameof(ProcessPaymentActivity),
-            new PaymentRequest(orderId, order.CustomerId, order.TotalAmount),
-            activityOptions
-        );
+        // Payment gets a shorter retry policy so the failed-workflow demo reaches FAILED in ~10s.
+        var paymentOptions = new WorkflowTaskOptions(new WorkflowRetryPolicy(
+            maxNumberOfAttempts: 4,
+            firstRetryInterval: TimeSpan.FromSeconds(1),
+            backoffCoefficient: 2.0,
+            maxRetryInterval: TimeSpan.FromSeconds(10)
+        ));
+
+        PaymentResult paymentResult;
+        try
+        {
+            paymentResult = await context.CallActivityAsync<PaymentResult>(
+                nameof(ProcessPaymentActivity),
+                new PaymentRequest(orderId, order.CustomerId, order.TotalAmount),
+                paymentOptions
+            );
+        }
+        catch (WorkflowTaskFailedException ex)
+        {
+            // Retries exhausted: tell the customer, then rethrow so the workflow ends as FAILED.
+            await context.CallActivityAsync(
+                nameof(SendNotificationActivity),
+                new NotificationRequest(orderId, "failed", $"Order {orderId} could not be processed: payment service unavailable after retries"),
+                activityOptions
+            );
+
+            throw new InvalidOperationException($"Order {orderId} failed: {ex.FailureDetails.ErrorMessage}", ex);
+        }
 
         if (! paymentResult.Success)
         {
