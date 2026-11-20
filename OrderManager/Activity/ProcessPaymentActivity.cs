@@ -7,10 +7,21 @@ namespace Diagrid.Labs.Catalyst.OrderWorkflow.OrderManager.Activity;
 
 public class ProcessPaymentActivity : WorkflowActivity<PaymentRequest, PaymentResult>
 {
+    public const string FailPaymentCustomerId = "fail-payment";
+
     public override async Task<PaymentResult> RunAsync(WorkflowActivityContext context, PaymentRequest request)
     {
         Console.WriteLine($"Processing payment for Order ID: {request.OrderId}, Amount: ${request.Amount}");
         
+        // Demo scenario: a payment gateway outage that never recovers. Use customer ID "fail-payment".
+        // Throwing (rather than returning a failed result) makes Dapr retry the activity until the
+        // workflow's retry policy is exhausted, which leaves the workflow in a FAILED runtime status.
+        if (request.CustomerId == FailPaymentCustomerId)
+        {
+            Console.WriteLine($"Payment gateway unavailable for Order ID: {request.OrderId} (simulated outage)");
+            throw new InvalidOperationException("Payment gateway unavailable (simulated outage)");
+        }
+
         if (request.Amount <= 0)
         {
             Console.WriteLine($"Payment failed for Order ID: {request.OrderId} - Reason: Invalid payment amount");
