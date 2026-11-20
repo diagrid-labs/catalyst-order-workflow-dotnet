@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Diagrid.Labs.Catalyst.OrderWorkflow.OrderManager.Model;
 
+/// <summary>Custom status published by the workflows via SetCustomStatus.</summary>
+public record OrderProgress(string Stage, string Detail);
+
 public record OrderResult(bool Success, string Message);
 
 public record OrderValidationRequest(string OrderId, string CustomerId, List<OrderItem> Items);

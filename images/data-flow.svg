@@ -40,7 +40,7 @@
   </defs>
 
   <!-- Title -->
-  <text x="40" y="38" class="title">Catalyst Order Workflow — Data Flow</text>
+  <text x="40" y="38" class="title">Diagrid Order Workflow — Data Flow</text>
   <text x="40" y="58" class="subtitle">Aspire AppHost orchestrates three services that interact via Dapr sidecars over a Valkey/Redis backplane (state + pub/sub).</text>
 
   <!-- Legend (top right, kept out of the diagram area) -->
@@ -134,13 +134,13 @@
   <!--                       DAPR SIDECAR BAND                       -->
   <!-- ============================================================= -->
   <rect x="60" y="595" width="1280" height="40" rx="6" fill="#fff3e0" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="6 4"/>
-  <text x="700" y="612" text-anchor="middle" class="node-sub" fill="#ef6c00" font-weight="700">Dapr Sidecars   (local: daprd · Catalyst: managed API)</text>
+  <text x="700" y="612" text-anchor="middle" class="node-sub" fill="#ef6c00" font-weight="700">Dapr Sidecars   (local: daprd · Diagrid: managed API)</text>
   <text x="700" y="627" text-anchor="middle" class="node-sub" fill="#ef6c00">service invocation · state · pub/sub · workflow engine</text>
 
   <!-- ============================================================= -->
   <!--                          BACKPLANE                            -->
   <!-- ============================================================= -->
-  <text x="60" y="660" class="node-sub" fill="#c62828" font-weight="700">Valkey / Redis backplane   (catalyst-order-workflow-cache:16379)   ·   In Catalyst mode → Diagrid-managed components</text>
+  <text x="60" y="660" class="node-sub" fill="#c62828" font-weight="700">Valkey / Redis backplane   (catalyst-order-workflow-cache:16379)   ·   In Diagrid mode → Diagrid-managed components</text>
 
   <!-- shop-activity -->
   <g>

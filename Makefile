@@ -71,7 +71,7 @@ kind-create:
 
 dapr-install:
 	@echo "Installing Dapr on Kubernetes..."
-	dapr init --runtime-version 1.17.1 --kubernetes --wait
+	dapr init --runtime-version 1.19.2 --kubernetes --wait
 	@echo "✓ Dapr installed"
 
 redis-install:

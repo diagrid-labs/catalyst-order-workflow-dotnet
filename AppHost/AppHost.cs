@@ -14,7 +14,7 @@ var notificationService = builder.AddProject<NotificationService>("notification-
 
 
 //
-// note: This extension method further configures the services to run against Catalyst
+// note: This extension method further configures the services to run against Diagrid
 if (useCatalyst) builder.ConfigureForCatalyst(orderManager, inventoryService, notificationService);
 //
 // note: This extension method further configures the services to run locally with Dapr sidecar processes

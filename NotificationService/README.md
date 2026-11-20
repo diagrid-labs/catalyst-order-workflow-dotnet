@@ -1,6 +1,6 @@
 # Notification Service
 
-Real-time notification dashboard for the Catalyst Order Workflow application. Displays order status updates using SignalR WebSockets and Dapr Pub/Sub.
+Real-time notification dashboard for the Diagrid Order Workflow application. Displays order status updates using SignalR WebSockets and Dapr Pub/Sub.
 
 ## Quick Start
 

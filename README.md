@@ -1,6 +1,6 @@
-# Catalyst E-Commerce Demo
+# Diagrid E-Commerce Demo
 
-![Architecture Diagram](/images/architecture.png)
+![Architecture Diagram](/images/Catalyst-Order-Workflow.png)
 
 This demo application showcases workflows and local development with Dapr using an e-commerce scenario. The scenario consists of three microservices:
 
@@ -42,7 +42,7 @@ Then open `http://localhost:8084` and sign in with user `admin` and the password
 ## Technologies Used
 
 - [Dapr](https://dapr.io/)
-- [Diagrid Catalyst](https://www.diagrid.io/catalyst)
+- [Diagrid](https://www.diagrid.io/catalyst)
 - [.NET and Aspire](https://learn.microsoft.com/dotnet/aspire/get-started/aspire-overview)
 
 ## Required Environment Variables
@@ -55,7 +55,7 @@ These Dapr environment variables are required by the services:
 - `DAPR_HTTP_ENDPOINT`
 - `DAPR_GRPC_ENDPOINT`
 
-For local Aspire runs, these are set automatically. For Catalyst-backed runs/deployments, provide values from your Catalyst project and App IDs.
+For local Aspire runs, these are set automatically. For Diagrid-backed runs/deployments, provide values from your Diagrid project and App IDs.
 
 ## Notification UI
 
@@ -88,6 +88,10 @@ The `OrderProcessingWorkflow` runs this sequence:
 A successful run therefore produces eight notifications and ends on `feedback`. There is no
 `completed` notification.
 
+### Custom status
+
+Both workflows publish a custom status (`{"stage": ..., "detail": ...}`) with `SetCustomStatus` as they progress, so you can see where an order is without reading history. `OrderProcessingWorkflow` stages: `created`, `validating`, `processing_payment`, `payment_processed`, `checking_inventory`, `reserving_inventory`, `shipping`, `awaiting_feedback`, `completed`, plus `validation_failed`, `payment_declined`, `payment_failed` and `inventory_failed` on the failure paths. `ShippingWorkflow` stages: `label_pending`, `awaiting_pickup`, `in_transit`, `out_for_delivery`, `delivered`.
+
 ### Failure behavior
 
 - Validation failure sends `failed` and ends workflow.
@@ -109,6 +113,11 @@ through the shipping stages using durable workflow timers:
 The child workflow takes about 25 seconds end to end. Once it returns, the parent waits a
 randomised **40-90 seconds** (the `CustomerFeedbackDelay` activity picks the duration) before
 sending `feedback` and completing.
+### Failed workflow scenario
+
+Create an order with customer ID `fail-payment` (in the UI form, or `endpoints.http`). The payment activity throws as if the gateway is down, Dapr retries it 4 times (1s, 2s, 4s backoff), then the workflow sends a `failed` notification and ends with runtime status `FAILED` (unlike the handled failures above, which complete normally). Inspect, pause or rerun it from the Catalyst workflow view.
+
+### Shipping delay
 
 The pauses are workflow timers, not thread sleeps - the workflow is checkpointed while it
 waits, so it survives the host process restarting. A full run takes roughly two minutes.
