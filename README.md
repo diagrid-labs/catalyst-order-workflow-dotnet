@@ -86,6 +86,10 @@ The `OrderProcessingWorkflow` runs this sequence:
 8. Send `delivered` notification.
 9. Send `completed` notification.
 
+### Custom status
+
+Both workflows publish a custom status (`{"stage": ..., "detail": ...}`) with `SetCustomStatus` as they progress, so you can see where an order is without reading history. `OrderProcessingWorkflow` stages: `created`, `validating`, `processing_payment`, `payment_processed`, `checking_inventory`, `reserving_inventory`, `shipping`, `awaiting_feedback`, `completed`, plus `validation_failed`, `payment_declined`, `payment_failed` and `inventory_failed` on the failure paths. `ShippingWorkflow` stages: `label_pending`, `awaiting_pickup`, `in_transit`, `out_for_delivery`, `delivered`.
+
 ### Failure behavior
 
 - Validation failure sends `failed` and ends workflow.
