@@ -78,13 +78,15 @@ The `OrderProcessingWorkflow` runs this sequence:
 1. Send `created` notification.
 2. Validate the order.
 3. Process payment.
-  - If successful, send `payment_processed` notification.
+  - If successful, send `payment_processed` notification and start the campaign activity. These two run concurrently.
 4. Check inventory for requested items.
 5. Reserve inventory.
 6. Send `shipped` notification.
-7. Wait 40 seconds to simulate shipping/delivery time.
-8. Send `delivered` notification.
-9. Send `completed` notification.
+7. Run `ShippingWorkflow` as a child workflow (see below).
+8. Wait a randomised 40-90 seconds, then send `feedback` notification.
+
+A successful run therefore produces eight notifications and ends on `feedback`. There is no
+`completed` notification.
 
 ### Custom status
 
@@ -96,13 +98,29 @@ Both workflows publish a custom status (`{"stage": ..., "detail": ...}`) with `S
 - Payment failure sends `failed` and ends workflow.
 - Inventory update failure sends `failed` and ends workflow.
 
+### Child workflow and delays
+
+After `shipped`, the order workflow calls `ShippingWorkflow` as a **child workflow**. It walks
+through the shipping stages using durable workflow timers:
+
+| Notification | Delay before it |
+|---|---|
+| `label_created` | 10s |
+| `picked_up` | 5s |
+| `out_for_delivery` | 5s |
+| `delivered` | 5s |
+
+The child workflow takes about 25 seconds end to end. Once it returns, the parent waits a
+randomised **40-90 seconds** (the `CustomerFeedbackDelay` activity picks the duration) before
+sending `feedback` and completing.
 ### Failed workflow scenario
 
 Create an order with customer ID `fail-payment` (in the UI form, or `endpoints.http`). The payment activity throws as if the gateway is down, Dapr retries it 4 times (1s, 2s, 4s backoff), then the workflow sends a `failed` notification and ends with runtime status `FAILED` (unlike the handled failures above, which complete normally). Inspect, pause or rerun it from the Catalyst workflow view.
 
 ### Shipping delay
 
-The demo intentionally includes a **40-second shipping delay** between `shipped` and `delivered` using a workflow timer. This is why notifications appear in sequence with a noticeable pause before delivery/completion.
+The pauses are workflow timers, not thread sleeps - the workflow is checkpointed while it
+waits, so it survives the host process restarting. A full run takes roughly two minutes.
 
 ## API and Test References
 
